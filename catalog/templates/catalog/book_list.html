@@ -1,0 +1,141 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}Book Catalog{% endblock %}
+
+{% block content %}
+    <h2>📚 Book Catalog</h2>
+    <p class="subtitle">Browse Available Books</p>
+
+    <p style="font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 14px; color: #6B5D4D; margin-bottom: 24px;">
+        Explore the full collection of books available in the library.
+    </p>
+
+    {% if user.role == 'LIBRARIAN' or user.role == 'SUPERADMIN' %}
+        <a href="{% url 'add-book-page' %}"><button style="margin-bottom: 20px;">+ Add Book</button></a>
+    {% endif %}
+
+    <!-- Filter Form -->
+    <div style="background-color: #f5f5f5; padding: 16px; border-radius: 8px; margin-bottom: 24px; border: 1px solid #ddd;">
+        <h3 style="margin-top: 0; color: #333;">🔍 Search & Filter</h3>
+        
+        <form method="GET" style="display: grid; gap: 12px;">
+            <!-- Search Box -->
+            <div>
+                <label style="display: block; margin-bottom: 4px; font-weight: 500; color: #333;">Search</label>
+                <input type="text" name="search" value="{{ request.GET.search }}" 
+                    placeholder="Search by title, author, or ISBN..."
+                    style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: Arial, sans-serif;">
+            </div>
+
+            <!-- Filters Row 1: Category, Author -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div>
+                    <label style="display: block; margin-bottom: 4px; font-weight: 500; color: #333;">Category</label>
+                    <select name="category" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: Arial, sans-serif;">
+                        <option value="">All Categories</option>
+                        {% for category in filter_form.category.field.queryset %}
+                            <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label style="display: block; margin-bottom: 4px; font-weight: 500; color: #333;">Author</label>
+                    <select name="author" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: Arial, sans-serif;">
+                        <option value="">All Authors</option>
+                        {% for author in filter_form.author.field.queryset %}
+                            <option value="{{ author.id }}" {% if request.GET.author == author.id|stringformat:"s" %}selected{% endif %}>
+                                {{ author.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Filters Row 2: Date Range -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div>
+                    <label style="display: block; margin-bottom: 4px; font-weight: 500; color: #333;">Published From</label>
+                    <input type="date" name="published_from" value="{{ request.GET.published_from }}"
+                        style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: Arial, sans-serif;">
+                </div>
+                
+                <div>
+                    <label style="display: block; margin-bottom: 4px; font-weight: 500; color: #333;">Published To</label>
+                    <input type="date" name="published_to" value="{{ request.GET.published_to }}"
+                        style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: Arial, sans-serif;">
+                </div>
+            </div>
+
+            <!-- Filters Row 3: Sorting & Availability -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div>
+                    <label style="display: block; margin-bottom: 4px; font-weight: 500; color: #333;">Sort By</label>
+                    <select name="sort_by" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: Arial, sans-serif;">
+                        <option value="title" {% if request.GET.sort_by == 'title' %}selected{% endif %}>Title (A-Z)</option>
+                        <option value="-title" {% if request.GET.sort_by == '-title' %}selected{% endif %}>Title (Z-A)</option>
+                        <option value="-published_date" {% if request.GET.sort_by == '-published_date' %}selected{% endif %}>Newest First</option>
+                        <option value="published_date" {% if request.GET.sort_by == 'published_date' %}selected{% endif %}>Oldest First</option>
+                        <option value="-available_copies" {% if request.GET.sort_by == '-available_copies' %}selected{% endif %}>Most Available</option>
+                        <option value="available_copies" {% if request.GET.sort_by == 'available_copies' %}selected{% endif %}>Least Available</option>
+                    </select>
+                </div>
+                
+                <div style="display: flex; align-items: flex-end;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-weight: 500; color: #333; cursor: pointer;">
+                        <input type="checkbox" name="available_only" value="on" {% if request.GET.available_only %}checked{% endif %}>
+                        Only Available Books
+                    </label>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div style="display: flex; gap: 8px; justify-content: flex-start;">
+                <button type="submit" style="background-color: #6B5D4D; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">
+                    🔍 Apply Filters
+                </button>
+                <a href="{% url 'book-list-page' %}" style="background-color: #ccc; color: #333; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; font-weight: 500; display: inline-block;">
+                    ✕ Clear Filters
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Results Summary -->
+    <div style="margin-bottom: 16px; color: #6B5D4D; font-size: 14px;">
+        <strong>Results:</strong> {{ total_books }} book{{ total_books|pluralize }} found
+    </div>
+
+    <!-- Books List -->
+    <div>
+        {% for book in books %}
+        <div style="border-bottom: 1px solid #ddd; padding: 12px 0; text-align: left;">
+            <strong><a href="{% url 'book-detail-page' book.pk %}" style="color: #6B5D4D;">{{ book.title }}</a></strong> 
+            <span style="color: #999;">by {{ book.author.name }}</span><br>
+            <small style="color: #6B5D4D;">
+                📁 {{ book.category.name }} · 
+                📅 {{ book.published_date|date:"Y" }} · 
+            </small>
+            {% if book.available_copies == 0 %}
+                <span style="background-color: #B00020; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">Unavailable</span>
+            {% else %}
+                <small style="color: #6B5D4D;">{{ book.available_copies }} of {{ book.total_copies }} available</small>
+            {% endif %}
+        </div>
+        {% empty %}
+        <p style="color: #999; text-align: center; padding: 20px;">
+            No books found matching your filters. Try adjusting your search criteria.
+        </p>
+        {% endfor %}
+    </div>
+
+    {% if not books %}
+        <div style="background-color: #f0f0f0; padding: 16px; border-radius: 4px; text-align: center;">
+            <p style="color: #666;">No books available. Try different filters.</p>
+        </div>
+    {% endif %}
+
+    <p class="footer-link" style="margin-top: 24px;"><a href="{% url 'dashboard-page' %}">← Back to Dashboard</a></p>
+{% endblock %}
