@@ -53,11 +53,60 @@
   }
   .sidebar .nav-link:hover{ color:var(--parchment); }
 
+  .offcanvas.sidebar-mobile{
+    background:var(--deep-navy);
+    width:230px;
+  }
+  .offcanvas.sidebar-mobile .btn-close{
+    filter:invert(1);
+  }
+
+  .sidebar-inner{
+    padding:1.6rem 1.2rem;
+  }
+  .sidebar-inner .brand{
+    font-family:'Fraunces',serif;
+    color:var(--parchment);
+    font-weight:700;
+    font-size:1.25rem;
+    margin-bottom:2.2rem;
+    display:block;
+  }
+  .sidebar-inner .brand span{
+    color:var(--brass);
+  }
+  .sidebar-inner .nav-link{
+    color:#c9cedb;
+    font-weight:500;
+    padding:.55rem .7rem;
+    border-radius:5px;
+    margin-bottom:.2rem;
+    font-size:.92rem;
+  }
+  .sidebar-inner .nav-link.active{
+    background:rgba(176,141,87,0.15);
+    color:var(--brass);
+    font-weight:600;
+  }
+  .sidebar-inner .nav-link:hover{
+    color:var(--parchment);
+  }
+
+  .hamburger-btn{
+    border:1px solid rgba(28,37,65,0.15);
+    background:#fff;
+    border-radius:4px;
+    padding:.35rem .55rem;
+  }
+
   /* ---------- TOPBAR ---------- */
   .topbar{
     background:#fff;
     border-bottom:1px solid rgba(28,37,65,0.08);
     padding:1rem 1.6rem;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
   }
   .topbar .role-tag{
     font-family:'IBM Plex Mono',monospace;
@@ -171,24 +220,44 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <body>
 
+<!-- Mobile Burger Menu -->
+<div class="offcanvas offcanvas-start sidebar-mobile" tabindex="-1" id="mobileNav">
+  <div class="sidebar-inner">
+    <a class="brand" href="index.html">CampusHub <span>AI</span></a>
+    <nav class="nav flex-column">
+      <a class="nav-link active" href="dashboard.html">Dashboard</a>
+      <a class="nav-link" href="library.html">Library</a>
+      <a class="nav-link" href="my-books.html">My Books</a>
+      <a class="nav-link" href="reservations.html">Reservations</a>
+      <a class="nav-link" href="campus-ai.html">Campus AI</a>
+      <a class="nav-link" href="study-planner.html">Study Planner</a>
+      <a class="nav-link" href="announcement.html">Announcements</a>
+      <a class="nav-link" href="fines.html">Fines</a>
+    </nav>
+  </div>
+</div>
+
 <div class="d-flex">
   <!-- SIDEBAR -->
-  <div class="sidebar" style="width:230px;">
+  <div class="sidebar d-none d-lg-block" style="width:230px;">
     <a class="brand" href="#">CampusHub <span>AI</span></a>
     <nav class="nav flex-column">
       <a class="nav-link active" href="#">Dashboard</a>
       <a class="nav-link" href="library.html">Library</a>
       <a class="nav-link" href="my-books.html">My Books</a>
+      <a class="nav-link" href="reservations.html">Reservations</a>
       <a class="nav-link" href="campus-ai.html">Campus AI</a>
+      <a class="nav-link" href="study-planner.html">Study Planner</a>
       <a class="nav-link" href="announcement.html">Announcements</a>
       <a class="nav-link" href="fines.html">Fines</a>
     </nav>
   </div>
 
   <!-- MAIN -->
-  <div class="flex-grow-1">
-    <div class="topbar d-flex justify-content-between align-items-center">
-      <div>
+  <div class="flex-grow-1" style="min-width:0;">
+    <div class="topbar">
+      <div class="d-flex align-items-center gap-2">
+        <button class="hamburger-btn d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNav">☰</button>
         <span class="fw-semibold" style="color:var(--deep-navy)">Welcome, Nisesh</span>
       </div>
       <span class="role-tag">Student</span>
