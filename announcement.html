@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Announcements — CampusHub AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+  :root{
+    --ink-navy:#1C2541; --deep-navy:#0B132B; --parchment:#F7F5F0;
+    --brass:#B08D57; --stacks-green:#3E5C50; --ink-grey:#3A3F4B; --danger:#9B3B3B;
+  }
+  body{ background:var(--parchment); color:var(--ink-grey); font-family:'Inter',sans-serif; }
+  h1,h2,h3{ font-family:'Fraunces',serif; color:var(--deep-navy); }
+  .mono{ font-family:'IBM Plex Mono',monospace; }
+
+  .sidebar-inner{ padding:1.6rem 1.2rem; }
+  .sidebar-inner .brand{ font-family:'Fraunces',serif; color:var(--parchment); font-weight:700; font-size:1.25rem; margin-bottom:2.2rem; display:block; }
+  .sidebar-inner .brand span{ color:var(--brass); }
+  .sidebar-inner .nav-link{ color:#C9CEDB; font-weight:500; padding:.55rem .7rem; border-radius:5px; margin-bottom:.2rem; font-size:.92rem; }
+  .sidebar-inner .nav-link.active{ background:rgba(176,141,87,0.15); color:var(--brass); font-weight:600; }
+  .sidebar-inner .nav-link:hover{ color:var(--parchment); }
+  .sidebar-desktop{ background:var(--deep-navy); min-height:100vh; width:230px; flex-shrink:0; }
+  .offcanvas.sidebar-mobile{ background:var(--deep-navy); width:230px; }
+  .offcanvas.sidebar-mobile .btn-close{ filter:invert(1); }
+
+  .topbar{ background:#fff; border-bottom:1px solid rgba(28,37,65,0.08); padding:.9rem 1.2rem; display:flex; align-items:center; justify-content:space-between; }
+  .topbar .role-tag{ font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:.08em; color:var(--stacks-green); border:1px solid var(--stacks-green); border-radius:3px; padding:.1rem .5rem; text-transform:uppercase; }
+  .hamburger-btn{ border:1px solid rgba(28,37,65,0.15); background:#fff; border-radius:4px; padding:.35rem .55rem; }
+
+  /* Filter pills */
+  .filter-pills{ display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1.2rem; }
+  .filter-pill{ font-size:.8rem; font-weight:600; padding:.35rem .9rem; border-radius:20px; border:1px solid rgba(28,37,65,0.15); color:var(--ink-grey); cursor:pointer; background:#fff; }
+  .filter-pill.active{ background:var(--ink-navy); color:var(--parchment); border-color:var(--ink-navy); }
+
+  /* Announcement card */
+  .announce-card{ background:#fff; border:1px solid rgba(28,37,65,0.08); border-left:4px solid var(--brass); border-radius:6px; padding:1.2rem 1.4rem; margin-bottom:1rem; }
+  .announce-card.event{ border-left-color:var(--stacks-green); }
+  .announce-card .top-line{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.4rem; margin-bottom:.4rem; }
+  .announce-card .cat-tag{ font-family:'IBM Plex Mono',monospace; font-size:.65rem; letter-spacing:.08em; text-transform:uppercase; color:var(--brass); border:1px solid var(--brass); padding:.1rem .4rem; border-radius:3px; }
+  .announce-card.event .cat-tag{ color:var(--stacks-green); border-color:var(--stacks-green); }
+  .announce-card .date{ font-family:'IBM Plex Mono',monospace; font-size:.72rem; color:#8b93a3; }
+  .announce-card h3{ font-size:1.05rem; margin-bottom:.4rem; }
+  .announce-card p{ font-size:.9rem; margin-bottom:.6rem; }
+
+  .ai-summary-btn{ background:transparent; border:1px solid var(--ink-navy); color:var(--ink-navy); font-size:.75rem; font-weight:600; padding:.25rem .7rem; border-radius:4px; }
+  .ai-summary-btn:hover{ background:var(--ink-navy); color:var(--parchment); }
+  .ai-summary-box{ display:none; background:rgba(28,37,65,0.05); border-left:2px solid var(--brass); padding:.5rem .8rem; margin-top:.6rem; font-size:.85rem; }
+  .ai-summary-box .tag{ font-family:'IBM Plex Mono',monospace; font-size:.62rem; color:var(--brass); letter-spacing:.06em; display:block; margin-bottom:.2rem; }
+</style>
+</head>
+<body>
+
+<div class="offcanvas offcanvas-start sidebar-mobile" tabindex="-1" id="mobileNav">
+  <div class="sidebar-inner">
+    <a class="brand" href="index.html">CampusHub <span>AI</span></a>
+    <nav class="nav flex-column">
+      <a class="nav-link" href="dashboard.html">Dashboard</a>
+      <a class="nav-link" href="library.html">Library</a>
+      <a class="nav-link" href="dashboard.html">My Books</a>
+      <a class="nav-link" href="ai-chat.html">Campus AI</a>
+      <a class="nav-link active" href="announcements.html">Announcements</a>
+      <a class="nav-link" href="fines.html">Fines</a>
+    </nav>
+  </div>
+</div>
+
+<div class="d-flex">
+  <div class="sidebar-desktop d-none d-lg-block">
+    <div class="sidebar-inner">
+      <a class="brand" href="index.html">CampusHub <span>AI</span></a>
+      <nav class="nav flex-column">
+        <a class="nav-link" href="dashboard.html">Dashboard</a>
+        <a class="nav-link" href="library.html">Library</a>
+        <a class="nav-link" href="dashboard.html">My Books</a>
+        <a class="nav-link" href="ai-chat.html">Campus AI</a>
+        <a class="nav-link active" href="announcements.html">Announcements</a>
+        <a class="nav-link" href="fines.html">Fines</a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="flex-grow-1" style="min-width:0;">
+    <div class="topbar">
+      <div class="d-flex align-items-center gap-2">
+        <button class="hamburger-btn d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNav">☰</button>
+        <span class="fw-semibold" style="color:var(--deep-navy)">Announcements</span>
+      </div>
+      <span class="role-tag">Student</span>
+    </div>
+
+    <div class="container-fluid p-3 p-lg-4" style="max-width:820px;">
+
+      <div class="filter-pills">
+        <div class="filter-pill active" data-filter="all">All</div>
+        <div class="filter-pill" data-filter="library">Library</div>
+        <div class="filter-pill" data-filter="event">Events</div>
+        <div class="filter-pill" data-filter="exam">Exams</div>
+      </div>
+
+      <div class="announce-card" data-cat="library">
+        <div class="top-line">
+          <span class="cat-tag">Library</span>
+          <span class="date">AUG 20, 2026</span>
+        </div>
+        <h3>Library closed for maintenance this Saturday</h3>
+        <p>Due to scheduled maintenance work on the reading room's electrical wiring and network cabling, the main library building will be closed to all students, faculty, and staff members starting at 10:00 AM and reopening at 2:00 PM this Saturday. Online catalog search and the Campus AI assistant will remain available throughout.</p>
+        <button class="ai-summary-btn" onclick="toggleSummary(this)">✦ AI summary</button>
+        <div class="ai-summary-box">
+          <span class="tag">CAMPUS AI SUMMARY</span>
+          Library closed Saturday, 10 AM–2 PM, for maintenance. Online services stay up.
+        </div>
+      </div>
+
+      <div class="announce-card event" data-cat="event">
+        <div class="top-line">
+          <span class="cat-tag">Event</span>
+          <span class="date">AUG 18, 2026</span>
+        </div>
+        <h3>New Computer Networks titles added to the catalog</h3>
+        <p>Fifteen new titles covering network security, distributed systems, and modern protocol design have been added to the Computer Networks section, including two additional copies of Tanenbaum's Computer Networks.</p>
+      </div>
+
+      <div class="announce-card" data-cat="exam">
+        <div class="top-line">
+          <span class="cat-tag">Exam</span>
+          <span class="date">AUG 15, 2026</span>
+        </div>
+        <h3>Extended library hours during finals week</h3>
+        <p>Starting next Monday and running through the end of finals week, the library will extend its hours to 7:00 AM through midnight to give students more room to study, review borrowed materials, and use Campus AI's study planner ahead of exams.</p>
+        <button class="ai-summary-btn" onclick="toggleSummary(this)">✦ AI summary</button>
+        <div class="ai-summary-box">
+          <span class="tag">CAMPUS AI SUMMARY</span>
+          Library open 7 AM–midnight all next week for finals.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleSummary(btn){
+    const box = btn.nextElementSibling;
+    box.style.display = box.style.display === 'block' ? 'none' : 'block';
+  }
+
+  document.querySelectorAll('.filter-pill').forEach(pill=>{
+    pill.addEventListener('click', ()=>{
+      document.querySelectorAll('.filter-pill').forEach(p=>p.classList.remove('active'));
+      pill.classList.add('active');
+      const filter = pill.dataset.filter;
+      document.querySelectorAll('.announce-card').forEach(card=>{
+        card.style.display = (filter === 'all' || card.dataset.cat === filter) ? 'block' : 'none';
+      });
+    });
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

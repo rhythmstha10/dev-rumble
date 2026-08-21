@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="pageTitle">Book detail — CampusHub AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+  :root{
+    --ink-navy:#1C2541; --deep-navy:#0B132B; --parchment:#F7F5F0;
+    --brass:#B08D57; --stacks-green:#3E5C50; --ink-grey:#3A3F4B; --danger:#9B3B3B;
+  }
+  body{ background:var(--parchment); color:var(--ink-grey); font-family:'Inter',sans-serif; }
+  h1,h2,h3{ font-family:'Fraunces',serif; color:var(--deep-navy); }
+  .mono{ font-family:'IBM Plex Mono',monospace; }
+
+  .sidebar-inner{ padding:1.6rem 1.2rem; }
+  .sidebar-inner .brand{ font-family:'Fraunces',serif; color:var(--parchment); font-weight:700; font-size:1.25rem; margin-bottom:2.2rem; display:block; }
+  .sidebar-inner .brand span{ color:var(--brass); }
+  .sidebar-inner .nav-link{ color:#C9CEDB; font-weight:500; padding:.55rem .7rem; border-radius:5px; margin-bottom:.2rem; font-size:.92rem; }
+  .sidebar-inner .nav-link.active{ background:rgba(176,141,87,0.15); color:var(--brass); font-weight:600; }
+  .sidebar-inner .nav-link:hover{ color:var(--parchment); }
+  .sidebar-desktop{ background:var(--deep-navy); min-height:100vh; width:230px; flex-shrink:0; }
+  .offcanvas.sidebar-mobile{ background:var(--deep-navy); width:230px; }
+  .offcanvas.sidebar-mobile .btn-close{ filter:invert(1); }
+
+  .topbar{ background:#fff; border-bottom:1px solid rgba(28,37,65,0.08); padding:.9rem 1.2rem; display:flex; align-items:center; justify-content:space-between; }
+  .topbar .role-tag{ font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:.08em; color:var(--stacks-green); border:1px solid var(--stacks-green); border-radius:3px; padding:.1rem .5rem; text-transform:uppercase; }
+  .hamburger-btn{ border:1px solid rgba(28,37,65,0.15); background:#fff; border-radius:4px; padding:.35rem .55rem; }
+
+  .breadcrumb-row{ font-size:.82rem; color:#8b93a3; margin-bottom:1.2rem; }
+  .breadcrumb-row a{ color:#8b93a3; text-decoration:none; }
+  .breadcrumb-row a:hover{ color:var(--brass); }
+
+  .cover-block{ background:var(--ink-navy); border-radius:6px; min-height:280px; display:flex; align-items:center; justify-content:center; color:var(--brass); font-family:'IBM Plex Mono',monospace; font-size:.85rem; letter-spacing:.06em; text-align:center; padding:1.5rem; }
+
+  .book-title{ font-size:1.7rem; margin-bottom:.2rem; }
+  .book-author{ font-size:.95rem; color:#6b7280; margin-bottom:1rem; }
+
+  .avail-pill{ font-family:'IBM Plex Mono',monospace; font-size:.75rem; padding:.2rem .6rem; border-radius:3px; }
+  .avail-pill.available{ background:rgba(62,92,80,0.12); color:var(--stacks-green); }
+  .avail-pill.unavailable{ background:rgba(155,59,59,0.1); color:var(--danger); }
+
+  .action-card{ background:#fff; border:1px solid rgba(28,37,65,0.1); border-radius:6px; padding:1.3rem; position:relative; }
+  .action-card::before{ content:"CATALOG"; position:absolute; top:.65rem; right:.8rem; font-family:'IBM Plex Mono',monospace; font-size:.6rem; letter-spacing:.08em; color:var(--stacks-green); border:1px solid var(--stacks-green); padding:.1rem .35rem; border-radius:3px; }
+  .action-card .row-line{ display:flex; justify-content:space-between; font-size:.85rem; padding:.5rem 0; border-bottom:1px dashed rgba(28,37,65,0.12); }
+  .action-card .row-line:last-of-type{ border-bottom:none; }
+  .action-card .row-line span:first-child{ color:#6b7280; }
+  .action-card .row-line span:last-child{ font-weight:600; color:var(--deep-navy); }
+
+  .btn-brass{ background:var(--brass); color:var(--deep-navy); font-weight:600; border:none; padding:.6rem 1rem; width:100%; border-radius:4px; margin-top:1rem; }
+  .btn-brass:hover{ background:#c49f6b; color:var(--deep-navy); }
+  .btn-brass:disabled{ background:rgba(28,37,65,0.1); color:#8b93a3; cursor:not-allowed; }
+  .btn-outline-navy{ background:transparent; border:1px solid var(--ink-navy); color:var(--ink-navy); font-weight:600; padding:.6rem 1rem; width:100%; border-radius:4px; margin-top:.6rem; }
+  .btn-outline-navy:hover{ background:var(--ink-navy); color:var(--parchment); }
+  .btn-outline-navy:disabled{ opacity:.35; cursor:not-allowed; }
+
+  .panel{ background:#fff; border:1px solid rgba(28,37,65,0.08); border-radius:6px; padding:1.4rem; }
+  .panel h3{ font-size:1.05rem; margin-bottom:.9rem; }
+
+  .ai-why{ background:var(--ink-navy); color:var(--parchment); border-radius:6px; padding:1rem 1.2rem; font-size:.88rem; margin-top:1rem; }
+  .ai-why .tag{ font-family:'IBM Plex Mono',monospace; font-size:.62rem; letter-spacing:.08em; color:var(--brass); display:block; margin-bottom:.4rem; }
+
+  .review-row{ border-bottom:1px dashed rgba(28,37,65,0.12); padding:.8rem 0; }
+  .review-row:last-child{ border-bottom:none; }
+  .review-row .review-head{ display:flex; justify-content:space-between; margin-bottom:.25rem; }
+  .review-row .name{ font-weight:600; font-size:.88rem; color:var(--deep-navy); }
+  .review-row .stars{ color:var(--brass); font-size:.8rem; }
+  .review-row .empty{ color:rgba(28,37,65,0.15); }
+  .review-row p{ font-size:.86rem; margin:0; }
+
+  /* review modal star picker */
+  .star-input{ display:flex; gap:.3rem; font-size:1.8rem; color:var(--brass); cursor:pointer; margin:.6rem 0; line-height:1; }
+  .star-input .star{ font-size:0; }
+  .star-input .star::before{ content:"☆"; font-size:1.8rem; }
+  .star-input .star.filled::before{ content:"★"; }
+  .field-error{ color:var(--danger); font-size:.78rem; display:none; margin-top:-.4rem; margin-bottom:.6rem; }
+
+  @media (max-width: 991px){
+    .cover-block{ min-height:200px; margin-bottom:1.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="offcanvas offcanvas-start sidebar-mobile" tabindex="-1" id="mobileNav">
+  <div class="sidebar-inner">
+    <a class="brand" href="index.html">CampusHub <span>AI</span></a>
+    <nav class="nav flex-column">
+      <a class="nav-link" href="dashboard.html">Dashboard</a>
+      <a class="nav-link active" href="library.html">Library</a>
+      <a class="nav-link" href="my-books.html">My Books</a>
+      <a class="nav-link" href="reservations.html">Reservations</a>
+      <a class="nav-link" href="ai-chat.html">Campus AI</a>
+      <a class="nav-link" href="study-planner.html">Study Planner</a>
+      <a class="nav-link" href="announcements.html">Announcements</a>
+      <a class="nav-link" href="fines.html">Fines</a>
+    </nav>
+  </div>
+</div>
+
+<div class="d-flex">
+  <div class="sidebar-desktop d-none d-lg-block">
+    <div class="sidebar-inner">
+      <a class="brand" href="index.html">CampusHub <span>AI</span></a>
+      <nav class="nav flex-column">
+        <a class="nav-link" href="dashboard.html">Dashboard</a>
+        <a class="nav-link active" href="library.html">Library</a>
+        <a class="nav-link" href="my-books.html">My Books</a>
+        <a class="nav-link" href="reservations.html">Reservations</a>
+        <a class="nav-link" href="ai-chat.html">Campus AI</a>
+        <a class="nav-link" href="study-planner.html">Study Planner</a>
+        <a class="nav-link" href="announcements.html">Announcements</a>
+        <a class="nav-link" href="fines.html">Fines</a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="flex-grow-1" style="min-width:0;">
+    <div class="topbar">
+      <div class="d-flex align-items-center gap-2">
+        <button class="hamburger-btn d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNav">☰</button>
+        <span class="fw-semibold" style="color:var(--deep-navy)">Book detail</span>
+      </div>
+      <span class="role-tag">Student</span>
+    </div>
+
+    <div class="container-fluid p-3 p-lg-4" style="max-width:1000px;">
+
+      <div class="breadcrumb-row">
+        <a href="library.html">Library</a> / <span id="crumbGenre">—</span> / <span id="crumbTitle">—</span>
+      </div>
+
+      <div class="row g-4">
+        <!-- LEFT -->
+        <div class="col-lg-8">
+          <div class="row g-4">
+            <div class="col-md-4">
+              <div class="cover-block" id="coverBlock">—</div>
+            </div>
+            <div class="col-md-8">
+              <h1 class="book-title" id="bookTitle">—</h1>
+              <div class="book-author" id="bookAuthor">—</div>
+              <span class="avail-pill" id="availPill">—</span>
+              <p class="mt-3" style="font-size:.92rem;" id="bookDesc">—</p>
+              <div class="d-flex gap-3 mt-3 flex-wrap" style="font-size:.82rem;color:#6b7280;">
+                <span><strong style="color:var(--deep-navy);">ISBN</strong> <span id="bookIsbn">—</span></span>
+                <span><strong style="color:var(--deep-navy);">Genre</strong> <span id="bookGenre">—</span></span>
+                <span><strong style="color:var(--deep-navy);">Pages</strong> <span id="bookPages">—</span></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h3 class="mb-0">Reviews <span style="color:#8b93a3;font-weight:400;font-size:.85rem;" id="reviewCount">(0)</span></h3>
+              <button class="btn-outline-navy" style="width:auto;margin:0;padding:.35rem .8rem;font-size:.8rem;" onclick="openReviewModal()">Write a review</button>
+            </div>
+            <div id="reviewsList"><!-- filled by JS --></div>
+          </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="col-lg-4">
+          <div class="action-card">
+            <div class="row-line"><span>Status</span><span id="statusVal">—</span></div>
+            <div class="row-line"><span>Copies</span><span id="copiesVal">—</span></div>
+            <div class="row-line"><span>Loan period</span><span>14 days</span></div>
+            <div class="row-line"><span>Late fine</span><span>Rs. 10/day</span></div>
+
+            <button class="btn-brass" id="borrowBtn" onclick="confirmBorrow()">Borrow this book</button>
+            <button class="btn-outline-navy" id="reserveBtn" style="display:none;" onclick="confirmReserve()">Reserve instead</button>
+          </div>
+
+          <div class="ai-why">
+            <span class="tag">WHY CAMPUS AI RECOMMENDS THIS</span>
+            <span id="aiWhy">—</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Review modal (plain overlay — matches this page's existing pattern, not Bootstrap modal) -->
+<div id="reviewModal" style="display:none;position:fixed;inset:0;background:rgba(11,19,43,0.55);align-items:center;justify-content:center;z-index:50;padding:1rem;">
+  <div style="background:var(--parchment);border-radius:6px;padding:1.6rem;max-width:420px;width:100%;">
+    <h3 style="font-size:1.1rem;">Rate this book</h3>
+
+    <div class="star-input" id="starPicker">
+      <span class="star" data-val="1"></span>
+      <span class="star" data-val="2"></span>
+      <span class="star" data-val="3"></span>
+      <span class="star" data-val="4"></span>
+      <span class="star" data-val="5"></span>
+    </div>
+    <div class="field-error" id="ratingError">Pick a star rating first.</div>
+
+    <textarea class="form-control mb-1" rows="3" id="reviewText" placeholder="What did you think?" style="border:1px solid rgba(28,37,65,0.18);border-radius:4px;font-size:.88rem;"></textarea>
+    <div class="field-error" id="textError">Write a few words before submitting.</div>
+
+    <div class="d-flex gap-2 mt-2">
+      <button class="btn-outline-navy" style="margin:0;" onclick="closeReviewModal()">Cancel</button>
+      <button class="btn-brass" style="margin:0;" onclick="submitReview()">Submit</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ===== DEMO DATA STORE =====
+  // Stand-in for GET /api/books/{id}/. Each key matches the ?id=
+  // used in library.html's links. Delete this whole object once
+  // Person 1's book detail endpoint exists — see fetch() note below.
+  const BOOKS = {
+    1: {
+      title: "Database System Concepts",
+      author: "Silberschatz, Korth & Sudarshan · 7th Edition",
+      cover: "DATABASE<br>SYSTEM<br>CONCEPTS",
+      genre: "Database Systems",
+      isbn: "978-0078022159",
+      pages: 1376,
+      desc: "Covers the fundamentals of database design, relational theory, SQL, transaction management, and storage systems. Widely used as the core textbook for Database Systems coursework.",
+      available: true, copiesAvail: 2, copiesTotal: 3,
+      aiWhy: "You recently borrowed Python Programming and searched for SQL topics — this book's relational-model chapters build directly on that.",
+      reviews: [
+        { name:"Aashish R.", stars:5, text:"Dense but thorough — the SQL and normalization chapters alone are worth borrowing this for." },
+        { name:"Priya K.", stars:4, text:"Great reference for exam prep. Wish there were more worked examples on transactions." }
+      ]
+    },
+    2: {
+      title: "Python Programming",
+      author: "John Zelle",
+      cover: "PYTHON<br>PROGRAMMING",
+      genre: "Computer Science",
+      isbn: "978-1590282755",
+      pages: 512,
+      desc: "An introduction to programming using Python, covering fundamentals, data structures, and basic algorithmic thinking through hands-on examples.",
+      available: true, copiesAvail: 4, copiesTotal: 5,
+      aiWhy: "You've borrowed introductory CS material before — this is a common companion read alongside Data Structures & Algorithms.",
+      reviews: [
+        { name:"Sunita M.", stars:5, text:"Best beginner-friendly Python book in the library. Clear examples throughout." }
+      ]
+    },
+    3: {
+      title: "Computer Networks",
+      author: "Andrew S. Tanenbaum",
+      cover: "COMPUTER<br>NETWORKS",
+      genre: "Networking",
+      isbn: "978-0132126953",
+      pages: 960,
+      desc: "A comprehensive treatment of computer networking, from the physical layer through application-layer protocols, with an emphasis on real-world network design.",
+      available: false, copiesAvail: 0, copiesTotal: 4,
+      aiWhy: "Recommended because your recent catalog searches included 'network protocols' and 'OSI model'.",
+      reviews: [
+        { name:"Bikash T.", stars:4, text:"Thorough but dense — good as a reference, not a first read." }
+      ]
+    },
+    4: {
+      title: "Data Structures & Algorithms in Python",
+      author: "Goodrich, Tamassia & Goldwasser",
+      cover: "DATA STRUCTURES<br>&amp; ALGORITHMS",
+      genre: "Computer Science",
+      isbn: "978-1118290279",
+      pages: 768,
+      desc: "Covers core data structures and algorithm design using Python, with a strong focus on complexity analysis and practical implementation.",
+      available: true, copiesAvail: 3, copiesTotal: 3,
+      aiWhy: "Pairs naturally with Python Programming, which you currently have borrowed.",
+      reviews: []
+    },
+    5: {
+      title: "Operating System Concepts",
+      author: "Silberschatz, Galvin & Gagne",
+      cover: "OPERATING<br>SYSTEM CONCEPTS",
+      genre: "Computer Science",
+      isbn: "978-1118063330",
+      pages: 976,
+      desc: "A foundational text on operating system design: process management, memory management, file systems, and concurrency.",
+      available: true, copiesAvail: 1, copiesTotal: 2,
+      aiWhy: "Based on your borrowing history in systems-level coursework.",
+      reviews: [
+        { name:"Kritika S.", stars:4, text:"Solid textbook, the deadlock chapter is especially well explained." }
+      ]
+    },
+    6: {
+      title: "Fundamentals of Software Engineering",
+      author: "Rajib Mall",
+      cover: "FUNDAMENTALS OF<br>SOFTWARE ENGINEERING",
+      genre: "Software Engineering",
+      isbn: "978-8120349527",
+      pages: 638,
+      desc: "Introduces software engineering principles including requirements analysis, design methodologies, testing, and project management.",
+      available: false, copiesAvail: 0, copiesTotal: 2,
+      aiWhy: "Matches your program's software engineering coursework this semester.",
+      reviews: []
+    }
+  };
+
+  // ===== RENDER BASED ON ?id= IN THE URL =====
+  const bookId = new URLSearchParams(window.location.search).get('id') || '1';
+  const book = BOOKS[bookId] || BOOKS['1'];
+
+  document.getElementById('pageTitle').textContent = `${book.title} — CampusHub AI`;
+  document.getElementById('crumbGenre').textContent = book.genre;
+  document.getElementById('crumbTitle').textContent = book.title;
+  document.getElementById('coverBlock').innerHTML = book.cover;
+  document.getElementById('bookTitle').textContent = book.title;
+  document.getElementById('bookAuthor').textContent = book.author;
+  document.getElementById('bookDesc').textContent = book.desc;
+  document.getElementById('bookIsbn').textContent = book.isbn;
+  document.getElementById('bookGenre').textContent = book.genre;
+  document.getElementById('bookPages').textContent = book.pages;
+  document.getElementById('aiWhy').textContent = book.aiWhy;
+
+  const availPill = document.getElementById('availPill');
+  const statusVal = document.getElementById('statusVal');
+  const copiesVal = document.getElementById('copiesVal');
+  const borrowBtn = document.getElementById('borrowBtn');
+  const reserveBtn = document.getElementById('reserveBtn');
+
+  function renderAvailability(){
+    if(book.available){
+      availPill.textContent = `${book.copiesAvail} of ${book.copiesTotal} copies available`;
+      availPill.className = 'avail-pill available';
+      statusVal.textContent = 'Available';
+      statusVal.style.color = 'var(--stacks-green)';
+      copiesVal.textContent = `${book.copiesAvail} of ${book.copiesTotal}`;
+      borrowBtn.style.display = 'block';
+      reserveBtn.style.display = 'none';
+    } else {
+      availPill.textContent = 'All copies out';
+      availPill.className = 'avail-pill unavailable';
+      statusVal.textContent = 'All copies out';
+      statusVal.style.color = 'var(--danger)';
+      copiesVal.textContent = `0 of ${book.copiesTotal}`;
+      borrowBtn.style.display = 'none';
+      reserveBtn.style.display = 'block';
+    }
+  }
+  renderAvailability();
+
+  function renderReviews(){
+    const reviewsList = document.getElementById('reviewsList');
+    document.getElementById('reviewCount').textContent = `(${book.reviews.length})`;
+    if(book.reviews.length === 0){
+      reviewsList.innerHTML = `<p style="font-size:.85rem;color:#8b93a3;">No reviews yet — be the first.</p>`;
+    } else {
+      reviewsList.innerHTML = book.reviews.map(r => `
+        <div class="review-row">
+          <div class="review-head">
+            <span class="name">${r.name}</span>
+            <span class="stars">${'★'.repeat(r.stars)}<span class="empty">${'★'.repeat(5 - r.stars)}</span></span>
+          </div>
+          <p>${r.text}</p>
+        </div>
+      `).join('');
+    }
+  }
+  renderReviews();
+
+  function confirmBorrow(){
+    // ===== SWAP POINT =====
+    // Replace with:
+    //   const res = await fetch('/api/borrow/', {
+    //     method:'POST', headers:{'Content-Type':'application/json'},
+    //     body: JSON.stringify({ book_id: bookId })
+    //   });
+    // Then re-render availability from the response instead of alert().
+    alert(`"${book.title}" borrowed! (demo only — wire to POST /api/borrow/)`);
+  }
+
+  function confirmReserve(){
+    // ===== SWAP POINT =====
+    // Replace with: POST /api/reservations/  { book_id: bookId }
+    // Mirrors the mock reservations array used in reservations.html.
+    alert(`"${book.title}" reserved! Track it on your Reservations page. (demo only — wire to POST /api/reservations/)`);
+  }
+
+  // ===== REVIEW MODAL =====
+  let currentRating = 0;
+  const starPicker = document.getElementById('starPicker');
+  const stars = starPicker.querySelectorAll('.star');
+
+  stars.forEach(star => {
+    star.addEventListener('click', () => {
+      currentRating = parseInt(star.dataset.val);
+      stars.forEach(s => s.classList.toggle('filled', parseInt(s.dataset.val) <= currentRating));
+      document.getElementById('ratingError').style.display = 'none';
+    });
+  });
+
+  function resetReviewForm(){
+    currentRating = 0;
+    stars.forEach(s => s.classList.remove('filled'));
+    document.getElementById('reviewText').value = '';
+    document.getElementById('ratingError').style.display = 'none';
+    document.getElementById('textError').style.display = 'none';
+  }
+
+  function openReviewModal(){
+    resetReviewForm();
+    document.getElementById('reviewModal').style.display = 'flex';
+  }
+  function closeReviewModal(){
+    document.getElementById('reviewModal').style.display = 'none';
+  }
+
+  function submitReview(){
+    const text = document.getElementById('reviewText').value.trim();
+    let valid = true;
+
+    if(currentRating === 0){
+      document.getElementById('ratingError').style.display = 'block';
+      valid = false;
+    }
+    if(text.length === 0){
+      document.getElementById('textError').style.display = 'block';
+      valid = false;
+    }
+    if(!valid) return;
+
+    // ===== SWAP POINT =====
+    // POST /api/reviews/  { book_id: bookId, rating: currentRating, text }
+    book.reviews.unshift({ name: 'You', stars: currentRating, text: text });
+    renderReviews();
+    closeReviewModal();
+  }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

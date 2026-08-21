@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — CampusHub AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<style>
+  :root{
+    --ink-navy:#1C2541;
+    --deep-navy:#0B132B;
+    --parchment:#F7F5F0;
+    --brass:#B08D57;
+    --stacks-green:#3E5C50;
+    --ink-grey:#3A3F4B;
+    --danger:#9B3B3B;
+  }
+  body{ background:var(--parchment); color:var(--ink-grey); font-family:'Inter',sans-serif; }
+  h1,h2,h3,.display{ font-family:'Fraunces',serif; color:var(--deep-navy); }
+  .mono{ font-family:'IBM Plex Mono',monospace; }
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar{
+    background:var(--deep-navy);
+    min-height:100vh;
+    padding:1.6rem 1.2rem;
+  }
+  .sidebar .brand{
+    font-family:'Fraunces',serif;
+    color:var(--parchment);
+    font-weight:700;
+    font-size:1.25rem;
+    margin-bottom:2.2rem;
+    display:block;
+  }
+  .sidebar .brand span{ color:var(--brass); }
+  .sidebar .nav-link{
+    color:#C9CEDB;
+    font-weight:500;
+    padding:.55rem .7rem;
+    border-radius:5px;
+    margin-bottom:.2rem;
+    font-size:.92rem;
+  }
+  .sidebar .nav-link.active{
+    background:rgba(176,141,87,0.15);
+    color:var(--brass);
+    font-weight:600;
+  }
+  .sidebar .nav-link:hover{ color:var(--parchment); }
+
+  /* ---------- TOPBAR ---------- */
+  .topbar{
+    background:#fff;
+    border-bottom:1px solid rgba(28,37,65,0.08);
+    padding:1rem 1.6rem;
+  }
+  .topbar .role-tag{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:.7rem;
+    letter-spacing:.08em;
+    color:var(--stacks-green);
+    border:1px solid var(--stacks-green);
+    border-radius:3px;
+    padding:.1rem .5rem;
+    text-transform:uppercase;
+  }
+
+  /* ---------- STAMP STAT CARDS (signature element, reused) ---------- */
+  .stamp-card{
+    background:#fff;
+    border:1px solid rgba(28,37,65,0.1);
+    border-radius:4px;
+    padding:1.1rem 1.3rem;
+    position:relative;
+    height:100%;
+  }
+  .stamp-card::before{
+    content:attr(data-tag);
+    position:absolute;
+    top:.55rem; right:.7rem;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:.6rem;
+    letter-spacing:.08em;
+    color:var(--stacks-green);
+    border:1px solid var(--stacks-green);
+    padding:.1rem .35rem;
+    border-radius:3px;
+  }
+  .stamp-card .stamp-value{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:1.8rem;
+    font-weight:600;
+    color:var(--deep-navy);
+    margin-top:.4rem;
+  }
+  .stamp-card.warn::before{ color:var(--brass); border-color:var(--brass); }
+  .stamp-card.warn .stamp-value{ color:var(--brass); }
+  .stamp-card.danger::before{ color:var(--danger); border-color:var(--danger); }
+  .stamp-card.danger .stamp-value{ color:var(--danger); }
+  .stamp-card .stamp-label{ font-size:.82rem; color:#6b7280; }
+
+  /* ---------- SECTION CARDS ---------- */
+  .panel{
+    background:#fff;
+    border:1px solid rgba(28,37,65,0.08);
+    border-radius:6px;
+    padding:1.4rem;
+    height:100%;
+  }
+  .panel h3{ font-size:1.1rem; margin-bottom:1rem; }
+
+  .book-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:.6rem 0;
+    border-bottom:1px dashed rgba(28,37,65,0.12);
+    font-size:.9rem;
+  }
+  .book-row:last-child{ border-bottom:none; }
+  .book-row .due-pill{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:.72rem;
+    padding:.15rem .5rem;
+    border-radius:3px;
+    background:rgba(176,141,87,0.15);
+    color:var(--brass);
+  }
+
+  /* Campus AI mini-panel */
+  .ai-panel{
+    background:var(--ink-navy);
+    color:var(--parchment);
+    border-radius:6px;
+    padding:1.4rem;
+    height:100%;
+  }
+  .ai-panel h3{ color:var(--parchment); }
+  .ai-bubble{
+    background:rgba(247,245,240,0.06);
+    border:1px solid rgba(176,141,87,0.3);
+    border-radius:5px;
+    padding:.7rem .9rem;
+    font-size:.88rem;
+    margin-bottom:.7rem;
+  }
+  .ai-input{
+    background:rgba(247,245,240,0.08);
+    border:1px solid rgba(255,255,255,0.15);
+    border-radius:5px;
+    padding:.5rem .8rem;
+    color:var(--parchment);
+    font-size:.85rem;
+  }
+  .ai-input::placeholder{ color:#8891A5; }
+
+  .announce{
+    border-left:3px solid var(--brass);
+    padding:.4rem .8rem;
+    margin-bottom:.7rem;
+    font-size:.86rem;
+  }
+  .announce .date{ font-family:'IBM Plex Mono',monospace; font-size:.7rem; color:#8891A5; }
+</style>
+</head>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<body>
+
+<div class="d-flex">
+  <!-- SIDEBAR -->
+  <div class="sidebar" style="width:230px;">
+    <a class="brand" href="#">CampusHub <span>AI</span></a>
+    <nav class="nav flex-column">
+      <a class="nav-link active" href="#">Dashboard</a>
+      <a class="nav-link" href="library.html">Library</a>
+      <a class="nav-link" href="my-books.html">My Books</a>
+      <a class="nav-link" href="campus-ai.html">Campus AI</a>
+      <a class="nav-link" href="announcement.html">Announcements</a>
+      <a class="nav-link" href="fines.html">Fines</a>
+    </nav>
+  </div>
+
+  <!-- MAIN -->
+  <div class="flex-grow-1">
+    <div class="topbar d-flex justify-content-between align-items-center">
+      <div>
+        <span class="fw-semibold" style="color:var(--deep-navy)">Welcome, Nisesh</span>
+      </div>
+      <span class="role-tag">Student</span>
+    </div>
+
+    <div class="container-fluid p-4">
+
+      <!-- STATS ROW -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-3">
+          <div class="stamp-card" data-tag="LIBRARY">
+            <div class="stamp-label">Borrowed books</div>
+            <div class="stamp-value">3</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stamp-card warn" data-tag="DUE SOON">
+            <div class="stamp-label">Due soon</div>
+            <div class="stamp-value">1</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stamp-card danger" data-tag="OVERDUE">
+            <div class="stamp-label">Overdue</div>
+            <div class="stamp-value">0</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stamp-card warn" data-tag="FINE">
+            <div class="stamp-label">Current fine</div>
+            <div class="stamp-value">Rs. 50</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <!-- MY BOOKS -->
+        <div class="col-lg-4">
+          <div class="panel">
+            <h3>My Books</h3>
+            <div class="book-row">
+              <span>Database System Concepts</span>
+              <span class="due-pill">Due Aug 25</span>
+            </div>
+            <div class="book-row">
+              <span>Python Programming</span>
+              <span class="due-pill">Due Sep 02</span>
+            </div>
+            <div class="book-row">
+              <span>Computer Networks</span>
+              <span class="due-pill">Due Sep 05</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTIVITY CHART -->
+        <div class="col-lg-4">
+          <div class="panel">
+            <h3>Borrowing activity</h3>
+            <canvas id="activityChart" height="160"></canvas>
+          </div>
+        </div>
+
+        <!-- CAMPUS AI -->
+        <div class="col-lg-4">
+          <div class="ai-panel">
+            <h3>Campus AI</h3>
+            <div class="ai-bubble">You: When is my DBMS book due?</div>
+            <div class="ai-bubble">Campus AI: <em>Database System Concepts</em> is due <strong>Aug 25</strong>. It's eligible for renewal if you need more time.</div>
+            <input class="ai-input w-100" type="text" placeholder="Ask Campus AI anything...">
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <!-- RECOMMENDED -->
+        <div class="col-lg-8">
+          <div class="panel">
+            <h3>Recommended for you</h3>
+            <div class="book-row">
+              <span>Fundamentals of Database Systems</span>
+              <span class="mono" style="font-size:.75rem;color:#6b7280;">based on your SQL borrows</span>
+            </div>
+            <div class="book-row">
+              <span>Data Structures &amp; Algorithms in Python</span>
+              <span class="mono" style="font-size:.75rem;color:#6b7280;">based on Python Programming</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ANNOUNCEMENTS -->
+        <div class="col-lg-4">
+          <div class="panel">
+            <h3>Announcements</h3>
+            <div class="announce">
+              <div class="date">AUG 20, 2026</div>
+              Library closed Saturday 10 AM–2 PM for maintenance.
+            </div>
+            <div class="announce">
+              <div class="date">AUG 18, 2026</div>
+              New Computer Networks titles added to the catalog.
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  const ctx = document.getElementById('activityChart');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Apr','May','Jun','Jul','Aug'],
+      datasets: [{
+        label: 'Books borrowed',
+        data: [1,2,1,3,3],
+        backgroundColor: '#B08D57',
+        borderRadius: 3,
+        maxBarThickness: 28
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display:false } },
+        y: { beginAtZero:true, ticks:{ stepSize:1 }, grid:{ color:'rgba(28,37,65,0.06)' } }
+      }
+    }
+  });
+</script>
+
+</body>
+</html>

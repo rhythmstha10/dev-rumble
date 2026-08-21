@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Library — CampusHub AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --ink-navy: #1c2541;
+        --deep-navy: #0b132b;
+        --parchment: #f7f5f0;
+        --brass: #b08d57;
+        --stacks-green: #3e5c50;
+        --ink-grey: #3a3f4b;
+        --danger: #9b3b3b;
+      }
+      body {
+        background: var(--parchment);
+        color: var(--ink-grey);
+        font-family: "Inter", sans-serif;
+      }
+      h1,
+      h2,
+      h3 {
+        font-family: "Fraunces", serif;
+        color: var(--deep-navy);
+      }
+      .mono {
+        font-family: "IBM Plex Mono", monospace;
+      }
+
+      /* ---------- SIDEBAR (desktop) / OFFCANVAS (mobile) ---------- */
+      .sidebar-inner {
+        padding: 1.6rem 1.2rem;
+      }
+      .sidebar-inner .brand {
+        font-family: "Fraunces", serif;
+        color: var(--parchment);
+        font-weight: 700;
+        font-size: 1.25rem;
+        margin-bottom: 2.2rem;
+        display: block;
+      }
+      .sidebar-inner .brand span {
+        color: var(--brass);
+      }
+      .sidebar-inner .nav-link {
+        color: #c9cedb;
+        font-weight: 500;
+        padding: 0.55rem 0.7rem;
+        border-radius: 5px;
+        margin-bottom: 0.2rem;
+        font-size: 0.92rem;
+      }
+      .sidebar-inner .nav-link.active {
+        background: rgba(176, 141, 87, 0.15);
+        color: var(--brass);
+        font-weight: 600;
+      }
+      .sidebar-inner .nav-link:hover {
+        color: var(--parchment);
+      }
+      .sidebar-desktop {
+        background: var(--deep-navy);
+        min-height: 100vh;
+        width: 230px;
+        flex-shrink: 0;
+      }
+      .offcanvas.sidebar-mobile {
+        background: var(--deep-navy);
+        width: 230px;
+      }
+      .offcanvas.sidebar-mobile .btn-close {
+        filter: invert(1);
+      }
+
+      .topbar {
+        background: #fff;
+        border-bottom: 1px solid rgba(28, 37, 65, 0.08);
+        padding: 0.9rem 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .topbar .role-tag {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.08em;
+        color: var(--stacks-green);
+        border: 1px solid var(--stacks-green);
+        border-radius: 3px;
+        padding: 0.1rem 0.5rem;
+        text-transform: uppercase;
+      }
+      .hamburger-btn {
+        border: 1px solid rgba(28, 37, 65, 0.15);
+        background: #fff;
+        border-radius: 4px;
+        padding: 0.35rem 0.55rem;
+      }
+
+      /* ---------- FILTER PANEL ---------- */
+      .filter-panel {
+        background: #fff;
+        border: 1px solid rgba(28, 37, 65, 0.08);
+        border-radius: 6px;
+        padding: 1.3rem;
+      }
+      .filter-panel h3 {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+      }
+      .filter-panel label {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--deep-navy);
+      }
+      .form-check-label {
+        font-size: 0.85rem;
+        font-weight: 400 !important;
+        color: var(--ink-grey);
+      }
+      .form-control,
+      .form-select {
+        border: 1px solid rgba(28, 37, 65, 0.18);
+        border-radius: 4px;
+        font-size: 0.88rem;
+      }
+      .form-control:focus,
+      .form-select:focus {
+        border-color: var(--brass);
+        box-shadow: 0 0 0 3px rgba(176, 141, 87, 0.18);
+      }
+
+      /* ---------- BOOK CARD ---------- */
+      .book-card {
+        background: #fff;
+        border: 1px solid rgba(28, 37, 65, 0.08);
+        border-radius: 6px;
+        padding: 1.2rem;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      .book-cover {
+        background: var(--ink-navy);
+        height: 120px;
+        border-radius: 4px;
+        margin-bottom: 0.9rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--brass);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.06em;
+        text-align: center;
+        padding: 0.5rem;
+      }
+      .book-card h3 {
+        font-size: 1.02rem;
+        margin-bottom: 0.2rem;
+      }
+      .book-card .author {
+        font-size: 0.82rem;
+        color: #6b7280;
+        margin-bottom: 0.6rem;
+      }
+      .book-card .meta-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+        padding-top: 0.7rem;
+        border-top: 1px dashed rgba(28, 37, 65, 0.12);
+      }
+      .avail-pill {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.7rem;
+        padding: 0.15rem 0.5rem;
+        border-radius: 3px;
+      }
+      .avail-pill.available {
+        background: rgba(62, 92, 80, 0.12);
+        color: var(--stacks-green);
+      }
+      .avail-pill.unavailable {
+        background: rgba(155, 59, 59, 0.1);
+        color: var(--danger);
+      }
+      .btn-brass-sm {
+        background: var(--brass);
+        color: var(--deep-navy);
+        font-weight: 600;
+        border: none;
+        font-size: 0.8rem;
+        padding: 0.3rem 0.8rem;
+        border-radius: 4px;
+      }
+      .btn-brass-sm:hover {
+        background: #c49f6b;
+      }
+      .book-card-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+      }
+      .book-card-link:hover .book-cover {
+        opacity: 0.85;
+      }
+      .book-card-link:hover h3 {
+        color: var(--brass);
+      }
+      .book-card-link{ text-decoration:none; color:inherit; display:block; }
+.book-card-link:hover .book-cover{ opacity:.85; }
+.book-card-link:hover h3{ color:var(--brass); }
+
+      .search-bar {
+        border: 1px solid rgba(28, 37, 65, 0.15);
+        border-radius: 5px;
+        overflow: hidden;
+        display: flex;
+      }
+      .search-bar input {
+        border: none;
+        padding: 0.7rem 1rem;
+        flex: 1;
+        font-size: 0.92rem;
+      }
+      .search-bar input:focus {
+        outline: none;
+      }
+      .search-bar button {
+        background: var(--brass);
+        border: none;
+        color: var(--deep-navy);
+        font-weight: 600;
+        padding: 0 1.2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- MOBILE OFFCANVAS SIDEBAR -->
+    <div
+      class="offcanvas offcanvas-start sidebar-mobile"
+      tabindex="-1"
+      id="mobileNav"
+    >
+      <div class="sidebar-inner">
+        <a class="brand" href="index.html">CampusHub <span>AI</span></a>
+        <nav class="nav flex-column">
+          <a class="nav-link" href="dashboard.html">Dashboard</a>
+          <a class="nav-link active" href="library.html">Library</a>
+          <a class="nav-link" href="dashboard.html">My Books</a>
+          <a class="nav-link" href="ai-chat.html">Campus AI</a>
+          <a class="nav-link" href="dashboard.html">Announcements</a>
+          <a class="nav-link" href="dashboard.html">Fines</a>
+        </nav>
+      </div>
+    </div>
+
+    <div class="d-flex">
+      <!-- DESKTOP SIDEBAR -->
+      <div class="sidebar-desktop d-none d-lg-block">
+        <div class="sidebar-inner">
+          <a class="brand" href="index.html">CampusHub <span>AI</span></a>
+          <nav class="nav flex-column">
+            <a class="nav-link" href="dashboard.html">Dashboard</a>
+            <a class="nav-link active" href="library.html">Library</a>
+            <a class="nav-link" href="dashboard.html">My Books</a>
+            <a class="nav-link" href="ai-chat.html">Campus AI</a>
+            <a class="nav-link" href="dashboard.html">Announcements</a>
+            <a class="nav-link" href="dashboard.html">Fines</a>
+          </nav>
+        </div>
+      </div>
+
+      <!-- MAIN -->
+      <div class="flex-grow-1" style="min-width: 0">
+        <div class="topbar">
+          <div class="d-flex align-items-center gap-2">
+            <button
+              class="hamburger-btn d-lg-none"
+              type="button"
+              data-bs-toggle="offcanvas"
+              data-bs-target="#mobileNav"
+            >
+              ☰
+            </button>
+            <span class="fw-semibold" style="color: var(--deep-navy)"
+              >Library</span
+            >
+          </div>
+          <span class="role-tag">Student</span>
+        </div>
+
+        <div class="container-fluid p-3 p-lg-4">
+          <div class="row mb-3">
+            <div class="col-12">
+              <div class="search-bar">
+                <input
+                  type="text"
+                  placeholder="Search by title, author, or ISBN..."
+                />
+                <button>Search</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <!-- FILTERS -->
+            <div class="col-lg-3">
+              <div class="filter-panel">
+                <h3>Filters</h3>
+                <div class="mb-3">
+                  <label class="form-label d-block mb-1">Genre</label>
+                  <select class="form-select">
+                    <option>All genres</option>
+                    <option>Computer Science</option>
+                    <option>Database Systems</option>
+                    <option>Networking</option>
+                    <option>Fiction</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label d-block mb-1">Author</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Any author"
+                  />
+                </div>
+                <div class="mb-2">
+                  <label class="form-label d-block mb-1">Availability</label>
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="availOnly"
+                      checked
+                    />
+                    <label class="form-check-label" for="availOnly"
+                      >Available now</label
+                    >
+                  </div>
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="reserveOk"
+                    />
+                    <label class="form-check-label" for="reserveOk"
+                      >Include reservable</label
+                    >
+                  </div>
+                </div>
+                <button class="btn btn-brass-sm w-100 mt-2">
+                  Apply filters
+                </button>
+              </div>
+            </div>
+<div class="row g-3">
+
+  <!-- Database System Concepts -->
+  <div class="col-sm-6 col-xl-4">
+    <div class="book-card">
+      <a class="book-card-link" href="book-detail.html?id=1">
+        <div class="book-cover">DATABASE SYSTEM<br>CONCEPTS</div>
+        <h3>Database System Concepts</h3>
+        <div class="author">Silberschatz, Korth &amp; Sudarshan</div>
+      </a>
+      <div class="meta-row">
+        <span class="avail-pill available">Available</span>
+        <button class="btn-brass-sm">Borrow</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Python Programming -->
+  <div class="col-sm-6 col-xl-4">
+    <div class="book-card">
+      <a class="book-card-link" href="book-detail.html?id=2">
+        <div class="book-cover">PYTHON<br>PROGRAMMING</div>
+        <h3>Python Programming</h3>
+        <div class="author">John Zelle</div>
+      </a>
+      <div class="meta-row">
+        <span class="avail-pill available">Available</span>
+        <button class="btn-brass-sm">Borrow</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Computer Networks -->
+  <div class="col-sm-6 col-xl-4">
+    <div class="book-card">
+      <a class="book-card-link" href="book-detail.html?id=3">
+        <div class="book-cover">COMPUTER<br>NETWORKS</div>
+        <h3>Computer Networks</h3>
+        <div class="author">Andrew S. Tanenbaum</div>
+      </a>
+      <div class="meta-row">
+        <span class="avail-pill unavailable">All copies out</span>
+        <button class="btn-brass-sm" style="background:transparent;border:1px solid var(--brass);color:var(--brass);">Reserve</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Structures & Algorithms in Python -->
+  <div class="col-sm-6 col-xl-4">
+    <div class="book-card">
+      <a class="book-card-link" href="book-detail.html?id=4">
+        <div class="book-cover">DATA STRUCTURES<br>&amp; ALGORITHMS</div>
+        <h3>Data Structures &amp; Algorithms in Python</h3>
+        <div class="author">Goodrich, Tamassia &amp; Goldwasser</div>
+      </a>
+      <div class="meta-row">
+        <span class="avail-pill available">Available</span>
+        <button class="btn-brass-sm">Borrow</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Operating System Concepts -->
+  <div class="col-sm-6 col-xl-4">
+    <div class="book-card">
+      <a class="book-card-link" href="book-detail.html?id=5">
+        <div class="book-cover">OPERATING<br>SYSTEM CONCEPTS</div>
+        <h3>Operating System Concepts</h3>
+        <div class="author">Silberschatz, Galvin &amp; Gagne</div>
+      </a>
+      <div class="meta-row">
+        <span class="avail-pill available">Available</span>
+        <button class="btn-brass-sm">Borrow</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fundamentals of Software Engineering -->
+  <div class="col-sm-6 col-xl-4">
+    <div class="book-card">
+      <a class="book-card-link" href="book-detail.html?id=6">
+        <div class="book-cover">FUNDAMENTALS OF<br>SOFTWARE ENGINEERING</div>
+        <h3>Fundamentals of Software Engineering</h3>
+        <div class="author">Rajib Mall</div>
+      </a>
+      <div class="meta-row">
+        <span class="avail-pill unavailable">All copies out</span>
+        <button class="btn-brass-sm" style="background:transparent;border:1px solid var(--brass);color:var(--brass);">Reserve</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+              <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                  <li class="page-item disabled">
+                    <a class="page-link" href="#">Prev</a>
+                  </li>
+                  <li class="page-item active">
+                    <a
+                      class="page-link"
+                      href="#"
+                      style="
+                        background: var(--brass);
+                        border-color: var(--brass);
+                      "
+                      >1</a
+                    >
+                  </li>
+                  <li class="page-item">
+                    <a
+                      class="page-link"
+                      href="#"
+                      style="color: var(--deep-navy)"
+                      >2</a
+                    >
+                  </li>
+                  <li class="page-item">
+                    <a
+                      class="page-link"
+                      href="#"
+                      style="color: var(--deep-navy)"
+                      >3</a
+                    >
+                  </li>
+                  <li class="page-item">
+                    <a
+                      class="page-link"
+                      href="#"
+                      style="color: var(--deep-navy)"
+                      >Next</a
+                    >
+                  </li>
+                </ul>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+      
+    </script>
+  </body>
+</html>

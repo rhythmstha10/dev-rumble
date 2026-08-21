@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log in — CampusHub AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+  :root{
+    --ink-navy:#1C2541;
+    --deep-navy:#0B132B;
+    --parchment:#F7F5F0;
+    --brass:#B08D57;
+    --stacks-green:#3E5C50;
+    --ink-grey:#3A3F4B;
+    --danger:#9B3B3B;
+  }
+  body{
+    background:var(--deep-navy);
+    color:var(--ink-grey);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+  }
+  h1,h2,h3{ font-family:'Fraunces',serif; color:var(--deep-navy); }
+  .mono{ font-family:'IBM Plex Mono',monospace; }
+
+  .brand-strip{
+    padding:1.4rem 2rem;
+  }
+  .brand-strip a{
+    font-family:'Fraunces',serif;
+    color:var(--parchment);
+    font-weight:700;
+    font-size:1.25rem;
+    text-decoration:none;
+  }
+  .brand-strip a span{ color:var(--brass); }
+
+  /* faint shelf-line texture behind the card, same as the hero */
+  .auth-wrap{
+    position:relative;
+    min-height:calc(100vh - 76px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    padding:2rem;
+  }
+  .auth-wrap::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background-image:repeating-linear-gradient(
+      to bottom,
+      rgba(176,141,87,0.06) 0px,
+      rgba(176,141,87,0.06) 1px,
+      transparent 1px,
+      transparent 64px
+    );
+  }
+
+  /* Auth card = a bigger stamp-card, same signature language */
+  .auth-card{
+    background:var(--parchment);
+    border-radius:5px;
+    width:100%;
+    max-width:420px;
+    padding:2.2rem 2.2rem 1.8rem;
+    box-shadow:0 24px 60px rgba(0,0,0,0.45);
+    position:relative;
+    z-index:1;
+  }
+  .auth-card::before{
+    content:"CAMPUSHUB AI";
+    position:absolute;
+    top:.7rem; right:.9rem;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:.6rem;
+    letter-spacing:.1em;
+    color:var(--stacks-green);
+    border:1px solid var(--stacks-green);
+    padding:.15rem .4rem;
+    border-radius:3px;
+  }
+
+  /* Tabs: Log in / Sign up */
+  .auth-tabs{
+    display:flex;
+    border-bottom:1px solid rgba(28,37,65,0.12);
+    margin-bottom:1.6rem;
+  }
+  .auth-tab{
+    flex:1;
+    text-align:center;
+    padding:.6rem 0;
+    font-weight:600;
+    font-size:.92rem;
+    color:#8b93a3;
+    cursor:pointer;
+    border-bottom:2px solid transparent;
+  }
+  .auth-tab.active{
+    color:var(--deep-navy);
+    border-bottom-color:var(--brass);
+  }
+
+  .form-label{
+    font-size:.8rem;
+    font-weight:600;
+    color:var(--deep-navy);
+    letter-spacing:.02em;
+  }
+  .form-control, .form-select{
+    border:1px solid rgba(28,37,65,0.18);
+    border-radius:4px;
+    padding:.55rem .8rem;
+    font-size:.92rem;
+  }
+  .form-control:focus, .form-select:focus{
+    border-color:var(--brass);
+    box-shadow:0 0 0 3px rgba(176,141,87,0.18);
+  }
+
+  /* Role selector styled like little catalog tabs, not a generic dropdown look */
+  .role-group{
+    display:flex;
+    gap:.5rem;
+  }
+  .role-option{
+    flex:1;
+    text-align:center;
+    border:1px solid rgba(28,37,65,0.18);
+    border-radius:4px;
+    padding:.5rem .3rem;
+    font-size:.78rem;
+    font-weight:600;
+    color:var(--ink-grey);
+    cursor:pointer;
+    user-select:none;
+  }
+  .role-option input{ display:none; }
+  .role-option.checked{
+    border-color:var(--brass);
+    background:rgba(176,141,87,0.12);
+    color:var(--deep-navy);
+  }
+
+  .btn-brass{
+    background:var(--brass);
+    color:var(--deep-navy);
+    font-weight:600;
+    border:none;
+    padding:.6rem 1.4rem;
+    width:100%;
+  }
+  .btn-brass:hover{ background:#c49f6b; color:var(--deep-navy); }
+
+  .auth-footnote{
+    font-size:.78rem;
+    color:#8b93a3;
+    text-align:center;
+    margin-top:1rem;
+  }
+  .auth-footnote a{ color:var(--stacks-green); font-weight:600; text-decoration:none; }
+
+  #formError{
+    display:none;
+    font-size:.8rem;
+    color:var(--danger);
+    background:rgba(155,59,59,0.08);
+    border:1px solid rgba(155,59,59,0.25);
+    border-radius:4px;
+    padding:.5rem .7rem;
+    margin-bottom:1rem;
+  }
+</style>
+</head>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<body>
+
+<div class="brand-strip">
+  <a href="index.html">CampusHub <span>AI</span></a>
+</div>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tabLogin" onclick="switchTab('login')">Log in</div>
+      <div class="auth-tab" id="tabSignup" onclick="switchTab('signup')">Sign up</div>
+    </div>
+
+    <div id="formError">Enter your email and password to continue.</div>
+
+    <!-- LOG IN FORM -->
+    <form id="loginForm">
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-control" id="loginEmail" placeholder="you@campus.edu" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-control" id="loginPassword" placeholder="••••••••" required>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label d-block mb-2">Log in as</label>
+        <div class="role-group">
+          <label class="role-option checked">
+            <input type="radio" name="loginRole" value="student" checked>Student
+          </label>
+          <label class="role-option">
+            <input type="radio" name="loginRole" value="librarian">Librarian
+          </label>
+          <label class="role-option">
+            <input type="radio" name="loginRole" value="admin">Admin
+          </label>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-brass">Log in</button>
+    </form>
+
+    <!-- SIGN UP FORM (hidden by default) -->
+    <form id="signupForm" style="display:none;">
+      <div class="mb-3">
+        <label class="form-label">Full name</label>
+        <input type="text" class="form-control" id="signupName" placeholder="Nisesh Shrestha" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-control" id="signupEmail" placeholder="you@campus.edu" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-control" id="signupPassword" placeholder="••••••••" required>
+      </div>
+      <div class="mb-4">
+        <label class="form-label">I am a</label>
+        <select class="form-select" id="signupRole">
+          <option value="student" selected>Student</option>
+          <option value="librarian">Librarian</option>
+        </select>
+        <div class="form-text" style="font-size:.75rem;">Admin accounts are created by an existing admin, not through sign-up.</div>
+      </div>
+
+      <button type="submit" class="btn btn-brass">Create account</button>
+    </form>
+
+    <div class="auth-footnote" id="footnoteLogin">
+      New here? <a onclick="switchTab('signup')">Create an account</a>
+    </div>
+    <div class="auth-footnote" id="footnoteSignup" style="display:none;">
+      Already have an account? <a onclick="switchTab('login')">Log in</a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // ---------- tab switching ----------
+  function switchTab(which){
+    const isLogin = which === 'login';
+    document.getElementById('tabLogin').classList.toggle('active', isLogin);
+    document.getElementById('tabSignup').classList.toggle('active', !isLogin);
+    document.getElementById('loginForm').style.display = isLogin ? 'block' : 'none';
+    document.getElementById('signupForm').style.display = isLogin ? 'none' : 'block';
+    document.getElementById('footnoteLogin').style.display = isLogin ? 'block' : 'none';
+    document.getElementById('footnoteSignup').style.display = isLogin ? 'none' : 'block';
+    document.getElementById('formError').style.display = 'none';
+  }
+
+  // ---------- role pill styling ----------
+  document.querySelectorAll('.role-option input').forEach(input => {
+    input.addEventListener('change', () => {
+      document.querySelectorAll('.role-option').forEach(opt => opt.classList.remove('checked'));
+      input.closest('.role-option').classList.add('checked');
+    });
+  });
+
+  // ---------- ROLE-BASED REDIRECT ----------
+  // Map each role to the page it should land on after login.
+  // Person 4: swap the hardcoded role below for the role that
+  // comes back from Django (e.g. response.data.user.role) once
+  // JWT login is wired up — everything else here stays the same.
+  const ROLE_REDIRECTS = {
+    student:   'dashboard.html',
+    librarian: 'librarian-dashboard.html',
+    admin:     'admin-dashboard.html'
+  };
+
+  document.getElementById('loginForm').addEventListener('submit', function(e){
+    e.preventDefault();
+
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+    const errorBox = document.getElementById('formError');
+
+    if(!email || !password){
+      errorBox.textContent = 'Enter your email and password to continue.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    // --- DEMO LOGIC (replace this block with a real fetch()) ---
+    // const res = await fetch('/api/auth/login/', {
+    //   method: 'POST',
+    //   headers: {'Content-Type':'application/json'},
+    //   body: JSON.stringify({ email, password })
+    // });
+    // const data = await res.json();
+    // const role = data.user.role.toLowerCase();
+
+    const selectedRole = document.querySelector('input[name="loginRole"]:checked').value;
+    const role = selectedRole; // stand-in for data.user.role above
+
+    const destination = ROLE_REDIRECTS[role] || 'dashboard.html';
+    window.location.href = destination;
+  });
+
+  document.getElementById('signupForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    // On real signup, Django creates the user with role = "Member" (student)
+    // or "Librarian", then either logs them in directly or sends them to
+    // the login tab. Simplest MVP: send new users to log in.
+    switchTab('login');
+  });
+</script>
+
+</body>
+</html>

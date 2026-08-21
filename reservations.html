@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reservations · CampusHub AI</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink-navy:#1C2541;
+    --deep-navy:#0B132B;
+    --parchment:#F7F5F0;
+    --brass:#B08D57;
+    --stacks-green:#3E5C50;
+    --ink-grey:#3A3F4B;
+    --danger:#9B3B3B;
+  }
+  body{ background:var(--parchment); color:var(--ink-grey); font-family:'Inter',sans-serif; }
+  h1,h2,h3,.brand{ font-family:'Fraunces',serif; }
+  .mono{ font-family:'IBM Plex Mono',monospace; }
+
+  .sidebar-desktop{
+    background:var(--ink-navy);
+    min-height:100vh;
+    width:240px;
+    position:fixed;
+    top:0; left:0;
+    padding:1.5rem 1rem;
+    display:none;
+  }
+  @media (min-width:992px){
+    .sidebar-desktop{ display:block; }
+    .main-content{ margin-left:240px; }
+  }
+  .sidebar-desktop .brand{ color:var(--parchment); font-size:1.3rem; margin-bottom:2rem; display:block; }
+  .sidebar-desktop .nav-link{ color:#C7CCDA; font-size:.92rem; padding:.55rem .75rem; border-radius:6px; margin-bottom:.15rem; }
+  .sidebar-desktop .nav-link.active,
+  .sidebar-desktop .nav-link:hover{ background:rgba(176,141,87,.15); color:var(--brass); }
+  .topbar{ background:var(--parchment); border-bottom:1px solid rgba(28,37,65,.1); padding:.9rem 1.25rem; }
+
+  .stamp-card{
+    background:#fff;
+    border:1px solid rgba(28,37,65,.12);
+    border-radius:10px;
+    padding:1rem 1.1rem;
+    position:relative;
+  }
+  .stamp-card .tag{
+    position:absolute; top:.7rem; right:.7rem;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:.65rem; letter-spacing:.04em;
+    border:1px solid currentColor;
+    border-radius:4px; padding:.15rem .45rem;
+  }
+  .tag-waiting{ color:var(--brass); }
+  .tag-ready{ color:var(--stacks-green); }
+
+  .res-card{ margin-bottom:.9rem; }
+  .res-cover{
+    width:56px; height:80px;
+    background:var(--ink-navy);
+    border-radius:4px;
+    flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--parchment);
+    font-family:'Fraunces',serif;
+    font-size:1.1rem;
+  }
+  .dashed-row{
+    border-top:1px dashed rgba(28,37,65,.2);
+    padding-top:.6rem;
+    margin-top:.6rem;
+  }
+  .queue-track{
+    height:6px;
+    background:rgba(28,37,65,.1);
+    border-radius:3px;
+    overflow:hidden;
+  }
+  .queue-fill{ height:100%; background:var(--brass); }
+
+  .btn-outline-cancel{
+    border:1px solid var(--danger);
+    color:var(--danger);
+    background:transparent;
+    font-size:.8rem;
+  }
+  .btn-outline-cancel:hover{ background:var(--danger); color:#fff; }
+
+  .btn-brass{ background:var(--brass); border:none; color:#fff; font-weight:600; }
+  .btn-brass:hover{ background:#96754a; color:#fff; }
+
+  .empty-state{
+    text-align:center;
+    padding:3.5rem 1rem;
+    color:rgba(58,63,75,.65);
+  }
+  .empty-state i{ font-size:2rem; display:block; margin-bottom:.75rem; opacity:.5; }
+</style>
+</head>
+<body>
+
+<nav class="sidebar-desktop">
+  <span class="brand">📖 CampusHub</span>
+  <ul class="nav flex-column">
+    <li class="nav-item"><a class="nav-link" href="dashboard.html">Dashboard</a></li>
+    <li class="nav-item"><a class="nav-link" href="library.html">Library</a></li>
+    <li class="nav-item"><a class="nav-link" href="my-books.html">My Books</a></li>
+    <li class="nav-item"><a class="nav-link active" href="reservations.html">Reservations</a></li>
+    <li class="nav-item"><a class="nav-link" href="ai-chat.html">Campus AI</a></li>
+    <li class="nav-item"><a class="nav-link" href="study-planner.html">Study Planner</a></li>
+    <li class="nav-item"><a class="nav-link" href="announcements.html">Announcements</a></li>
+    <li class="nav-item"><a class="nav-link" href="fines.html">Fines</a></li>
+  </ul>
+</nav>
+
+<div class="offcanvas offcanvas-start" id="mobileNav" style="background:var(--ink-navy);">
+  <div class="offcanvas-header">
+    <span class="brand" style="color:var(--parchment);">📖 CampusHub</span>
+    <button class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body">
+    <ul class="nav flex-column">
+      <li class="nav-item"><a class="nav-link" href="dashboard.html" style="color:#C7CCDA;">Dashboard</a></li>
+      <li class="nav-item"><a class="nav-link" href="library.html" style="color:#C7CCDA;">Library</a></li>
+      <li class="nav-item"><a class="nav-link" href="my-books.html" style="color:#C7CCDA;">My Books</a></li>
+      <li class="nav-item"><a class="nav-link active" href="reservations.html" style="color:var(--brass);">Reservations</a></li>
+      <li class="nav-item"><a class="nav-link" href="ai-chat.html" style="color:#C7CCDA;">Campus AI</a></li>
+      <li class="nav-item"><a class="nav-link" href="study-planner.html" style="color:#C7CCDA;">Study Planner</a></li>
+      <li class="nav-item"><a class="nav-link" href="announcements.html" style="color:#C7CCDA;">Announcements</a></li>
+      <li class="nav-item"><a class="nav-link" href="fines.html" style="color:#C7CCDA;">Fines</a></li>
+    </ul>
+  </div>
+</div>
+
+<div class="main-content">
+  <div class="topbar d-flex align-items-center gap-2">
+    <button class="btn d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#mobileNav">☰</button>
+    <h1 class="h5 mb-0">Reservations</h1>
+  </div>
+
+  <div class="container-fluid p-3 p-lg-4">
+    <p class="text-muted mb-4" style="max-width:520px;">
+      Books you've reserved while waiting for a copy to come back. You'll get a notification when yours is ready to pick up.
+    </p>
+    <div id="resList" class="row g-3"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ---- mock state (swap point: replace with GET /api/reservations/) ----
+let reservations = [
+  { id: 101, bookId: 12, title: 'The Structure of Scientific Revolutions', author: 'Thomas Kuhn', position: 1, queueLength: 3, reservedOn: '2026-08-10' },
+  { id: 102, bookId: 27, title: 'Design Patterns', author: 'Gamma, Helm, Johnson, Vlissides', position: 3, queueLength: 5, reservedOn: '2026-08-14' }
+];
+
+function initials(title){
+  return title.split(' ').filter(w => w.length).slice(0,2).map(w => w[0]).join('').toUpperCase();
+}
+
+function estReadyDate(position){
+  const d = new Date();
+  d.setDate(d.getDate() + position * 6); // rough estimate, avg loan length
+  return d.toLocaleDateString(undefined, { month:'short', day:'numeric' });
+}
+
+function render(){
+  const list = document.getElementById('resList');
+
+  if(reservations.length === 0){
+    list.innerHTML = `
+      <div class="col-12">
+        <div class="stamp-card empty-state">
+          <i>📗</i>
+          <div class="fw-semibold mb-1">No reservations yet</div>
+          <div class="small">When a book you want is checked out, reserve it from its catalog page and it'll show up here.</div>
+          <a href="library.html" class="btn btn-brass btn-sm mt-3">Browse the library</a>
+        </div>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = reservations.map(r => {
+    const pct = Math.max(8, Math.round(((r.queueLength - r.position + 1) / r.queueLength) * 100));
+    const isNext = r.position === 1;
+    return `
+      <div class="col-12 col-lg-6">
+        <div class="stamp-card res-card">
+          <span class="tag ${isNext ? 'tag-ready' : 'tag-waiting'}">${isNext ? 'YOU\'RE NEXT' : 'WAITING'}</span>
+          <div class="d-flex gap-3">
+            <div class="res-cover">${initials(r.title)}</div>
+            <div class="flex-grow-1">
+              <div class="fw-semibold">${r.title}</div>
+              <div class="small text-muted">${r.author}</div>
+            </div>
+          </div>
+          <div class="dashed-row">
+            <div class="d-flex justify-content-between small mono mb-1">
+              <span>Queue position ${r.position} of ${r.queueLength}</span>
+              <span>Est. ready ${estReadyDate(r.position)}</span>
+            </div>
+            <div class="queue-track">
+              <div class="queue-fill" style="width:${pct}%;"></div>
+            </div>
+          </div>
+          <div class="dashed-row d-flex justify-content-between align-items-center">
+            <span class="small text-muted mono">Reserved ${new Date(r.reservedOn).toLocaleDateString(undefined,{month:'short',day:'numeric'})}</span>
+            <button class="btn btn-outline-cancel btn-sm" data-id="${r.id}">Cancel reservation</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  list.querySelectorAll('[data-id]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      // ===== SWAP POINT =====
+      // POST /api/reservations/{id}/cancel/
+      const id = parseInt(btn.dataset.id);
+      reservations = reservations.filter(r => r.id !== id);
+      render();
+    });
+  });
+}
+
+render();
+</script>
+</body>
+</html>
