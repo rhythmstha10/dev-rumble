@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Books — CampusHub AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+  :root{
+    --ink-navy:#1C2541; --deep-navy:#0B132B; --parchment:#F7F5F0;
+    --brass:#B08D57; --stacks-green:#3E5C50; --ink-grey:#3A3F4B; --danger:#9B3B3B;
+  }
+  body{ background:var(--parchment); color:var(--ink-grey); font-family:'Inter',sans-serif; }
+  h1,h2,h3{ font-family:'Fraunces',serif; color:var(--deep-navy); }
+  .mono{ font-family:'IBM Plex Mono',monospace; }
+
+  .sidebar-inner{ padding:1.6rem 1.2rem; }
+  .sidebar-inner .brand{ font-family:'Fraunces',serif; color:var(--parchment); font-weight:700; font-size:1.25rem; margin-bottom:2.2rem; display:block; }
+  .sidebar-inner .brand span{ color:var(--brass); }
+  .sidebar-inner .nav-link{ color:#C9CEDB; font-weight:500; padding:.55rem .7rem; border-radius:5px; margin-bottom:.2rem; font-size:.92rem; }
+  .sidebar-inner .nav-link.active{ background:rgba(176,141,87,0.15); color:var(--brass); font-weight:600; }
+  .sidebar-inner .nav-link:hover{ color:var(--parchment); }
+  .sidebar-desktop{ background:var(--deep-navy); min-height:100vh; width:230px; flex-shrink:0; }
+  .offcanvas.sidebar-mobile{ background:var(--deep-navy); width:230px; }
+  .offcanvas.sidebar-mobile .btn-close{ filter:invert(1); }
+
+  .topbar{ background:#fff; border-bottom:1px solid rgba(28,37,65,0.08); padding:.9rem 1.2rem; display:flex; align-items:center; justify-content:space-between; }
+  .topbar .role-tag{ font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:.08em; color:var(--stacks-green); border:1px solid var(--stacks-green); border-radius:3px; padding:.1rem .5rem; text-transform:uppercase; }
+  .hamburger-btn{ border:1px solid rgba(28,37,65,0.15); background:#fff; border-radius:4px; padding:.35rem .55rem; }
+
+  /* tabs */
+  .mybooks-tabs{ display:flex; gap:.4rem; margin-bottom:1.2rem; border-bottom:1px solid rgba(28,37,65,0.1); }
+  .mybooks-tab{ padding:.6rem 1rem; font-weight:600; font-size:.88rem; color:#8b93a3; cursor:pointer; border-bottom:2px solid transparent; }
+  .mybooks-tab.active{ color:var(--deep-navy); border-bottom-color:var(--brass); }
+
+  /* borrowed book card = stamp-card variant, same signature language */
+  .loan-card{ background:#fff; border:1px solid rgba(28,37,65,0.08); border-radius:6px; padding:1.1rem 1.3rem; margin-bottom:.9rem; position:relative; }
+
+  .loan-card.due-soon::before{ color:var(--brass); border-color:var(--brass); }
+  .loan-card.overdue::before{ color:var(--danger); border-color:var(--danger); }
+
+  .loan-main{ display:flex; flex-wrap:wrap; gap:1rem; align-items:center; justify-content:space-between; }
+  .loan-info h3{ font-size:1.02rem; margin-bottom:.15rem; }
+  .loan-info .author{ font-size:.82rem; color:#6b7280; }
+  .loan-meta{ display:flex; gap:1.5rem; flex-wrap:wrap; }
+  .loan-meta .meta-item{ font-family:'IBM Plex Mono',monospace; font-size:.78rem; }
+  .loan-meta .meta-item .lbl{ display:block; font-size:.65rem; color:#8b93a3; text-transform:uppercase; letter-spacing:.05em; margin-bottom:.1rem; }
+  .loan-meta .meta-item.due-val{ color:var(--deep-navy); }
+  .loan-card.due-soon .loan-meta .due-val{ color:var(--brass); font-weight:600; }
+  .loan-card.overdue .loan-meta .due-val{ color:var(--danger); font-weight:600; }
+
+  .loan-actions{ display:flex; gap:.5rem; }
+  .btn-outline-navy{ background:transparent; border:1px solid var(--ink-navy); color:var(--ink-navy); font-size:.8rem; font-weight:600; padding:.35rem .8rem; border-radius:4px; }
+  .btn-outline-navy:hover{ background:var(--ink-navy); color:var(--parchment); }
+  .btn-brass-sm{ background:var(--brass); color:var(--deep-navy); font-weight:600; border:none; font-size:.8rem; padding:.35rem .8rem; border-radius:4px; }
+  .btn-brass-sm:hover{ background:#c49f6b; }
+  .btn-outline-navy:disabled{ opacity:.4; cursor:not-allowed; }
+
+  /* history table -> stacked cards on mobile, same trick as fines page */
+  .history-table{ width:100%; border-collapse:collapse; font-size:.88rem; }
+  .history-table th{ text-align:left; font-family:'IBM Plex Mono',monospace; font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; color:#8b93a3; padding:.5rem .4rem; border-bottom:1px solid rgba(28,37,65,0.1); }
+  .history-table td{ padding:.7rem .4rem; border-bottom:1px dashed rgba(28,37,65,0.1); vertical-align:middle; }
+  .rating-stars{ color:var(--brass); font-size:.8rem; letter-spacing:1px; }
+  .rating-stars .empty{ color:rgba(28,37,65,0.15); }
+
+  @media (max-width: 767px){
+    .history-table thead{ display:none; }
+    .history-table, .history-table tbody, .history-table tr, .history-table td{ display:block; width:100%; }
+    .history-table tr{ border:1px solid rgba(28,37,65,0.1); border-radius:6px; margin-bottom:.8rem; padding:.6rem .8rem; }
+    .history-table td{ border-bottom:none; padding:.25rem 0; display:flex; justify-content:space-between; }
+    .history-table td::before{ content:attr(data-label); font-family:'IBM Plex Mono',monospace; font-size:.68rem; color:#8b93a3; text-transform:uppercase; }
+    .loan-main{ flex-direction:column; align-items:flex-start; }
+    .loan-actions{ width:100%; }
+    .loan-actions button{ flex:1; }
+  }
+
+  .empty-state{ text-align:center; padding:3rem 1rem; color:#8b93a3; font-size:.9rem; }
+</style>
+</head>
+<body>
+
+<div class="offcanvas offcanvas-start sidebar-mobile" tabindex="-1" id="mobileNav">
+  <div class="sidebar-inner">
+    <a class="brand" href="index.html">CampusHub <span>AI</span></a>
+    <nav class="nav flex-column">
+      <a class="nav-link" href="dashboard.html">Dashboard</a>
+      <a class="nav-link" href="library.html">Library</a>
+      <a class="nav-link active" href="my-books.html">My Books</a>
+      <a class="nav-link" href="reservations.html">Reservations</a>
+      <a class="nav-link" href="campus-ai.html">Campus AI</a>
+      <a class="nav-link" href="study-planner.html">Study Planner</a>
+      <a class="nav-link" href="announcement.html">Announcements</a>
+      <a class="nav-link" href="fines.html">Fines</a>
+    </nav>
+  </div>
+</div>
+
+<div class="d-flex">
+  <div class="sidebar-desktop d-none d-lg-block">
+    <div class="sidebar-inner">
+      <a class="brand" href="index.html">CampusHub <span>AI</span></a>
+      <nav class="nav flex-column">
+        <a class="nav-link" href="dashboard.html">Dashboard</a>
+        <a class="nav-link" href="library.html">Library</a>
+        <a class="nav-link active" href="my-books.html">My Books</a>
+        <a class="nav-link" href="reservations.html">Reservations</a>
+        <a class="nav-link" href="campus-ai.html">Campus AI</a>
+        <a class="nav-link" href="study-planner.html">Study Planner</a>
+        <a class="nav-link" href="announcement.html">Announcements</a>
+        <a class="nav-link" href="fines.html">Fines</a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="flex-grow-1" style="min-width:0;">
+    <div class="topbar">
+      <div class="d-flex align-items-center gap-2">
+        <button class="hamburger-btn d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNav">☰</button>
+        <span class="fw-semibold" style="color:var(--deep-navy)">My Books</span>
+      </div>
+      <span class="role-tag">Student</span>
+    </div>
+
+    <div class="container-fluid p-3 p-lg-4" style="max-width:900px;">
+
+      <div class="mybooks-tabs">
+        <div class="mybooks-tab active" data-tab="current">Currently Borrowed (3)</div>
+        <div class="mybooks-tab" data-tab="history">History</div>
+      </div>
+
+      <!-- CURRENTLY BORROWED -->
+      <div id="tab-current">
+
+        <div class="loan-card" data-tag="ON TIME">
+          <div class="loan-main">
+            <div class="loan-info">
+              <h3>Python Programming</h3>
+              <div class="author">John Zelle</div>
+            </div>
+            <div class="loan-meta">
+              <div class="meta-item"><span class="lbl">Borrowed</span>Aug 09, 2026</div>
+              <div class="meta-item due-val"><span class="lbl">Due</span>Sep 02, 2026</div>
+            </div>
+            <div class="loan-actions">
+              <button class="btn-outline-navy">Renew</button>
+              <button class="btn-brass-sm">Return</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="loan-card due-soon" data-tag="DUE SOON">
+          <div class="loan-main">
+            <div class="loan-info">
+              <h3>Database System Concepts</h3>
+              <div class="author">Silberschatz, Korth &amp; Sudarshan</div>
+            </div>
+            <div class="loan-meta">
+              <div class="meta-item"><span class="lbl">Borrowed</span>Aug 04, 2026</div>
+              <div class="meta-item due-val"><span class="lbl">Due</span>Aug 25, 2026</div>
+            </div>
+            <div class="loan-actions">
+              <button class="btn-outline-navy">Renew</button>
+              <button class="btn-brass-sm">Return</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="loan-card overdue" data-tag="OVERDUE">
+          <div class="loan-main">
+            <div class="loan-info">
+              <h3>Computer Networks</h3>
+              <div class="author">Andrew S. Tanenbaum</div>
+            </div>
+            <div class="loan-meta">
+              <div class="meta-item"><span class="lbl">Borrowed</span>Jul 20, 2026</div>
+              <div class="meta-item due-val"><span class="lbl">Due</span>Aug 10, 2026</div>
+              <div class="meta-item" style="color:var(--danger);"><span class="lbl">Fine so far</span>Rs. 50</div>
+            </div>
+            <div class="loan-actions">
+              <button class="btn-outline-navy" disabled title="Not eligible — overdue">Renew</button>
+              <button class="btn-brass-sm">Return</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- HISTORY -->
+      <div id="tab-history" style="display:none;">
+        <div class="panel" style="background:#fff;border:1px solid rgba(28,37,65,0.08);border-radius:6px;padding:1.4rem;">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Book</th>
+                <th>Borrowed</th>
+                <th>Returned</th>
+                <th>Your rating</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td data-label="Book">Operating System Concepts</td>
+                <td data-label="Borrowed">May 20, 2026</td>
+                <td data-label="Returned">Jun 04, 2026</td>
+                <td data-label="Your rating"><span class="rating-stars">★★★★<span class="empty">★</span></span></td>
+              </tr>
+              <tr>
+                <td data-label="Book">Fundamentals of Software Engineering</td>
+                <td data-label="Borrowed">Mar 01, 2026</td>
+                <td data-label="Returned">Mar 24, 2026</td>
+                <td data-label="Your rating"><span class="rating-stars">★★★<span class="empty">★★</span></span></td>
+              </tr>
+              <tr>
+                <td data-label="Book">Data Structures &amp; Algorithms in Python</td>
+                <td data-label="Borrowed">Jan 12, 2026</td>
+                <td data-label="Returned">Jan 28, 2026</td>
+                <td data-label="Your rating"><a href="#" style="font-size:.82rem;color:var(--stacks-green);font-weight:600;">Write a review</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.mybooks-tab').forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      document.querySelectorAll('.mybooks-tab').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('tab-current').style.display = tab.dataset.tab === 'current' ? 'block' : 'none';
+      document.getElementById('tab-history').style.display = tab.dataset.tab === 'history' ? 'block' : 'none';
+    });
+  });
+
+  // Return/Renew are demo-only here — Person 1 wires these to
+  // POST /api/return/ and POST /api/renew/ with the loan's id.
+  document.querySelectorAll('.btn-brass-sm').forEach(btn=>{
+    btn.addEventListener('click', ()=> btn.closest('.loan-card').style.opacity = '0.4');
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

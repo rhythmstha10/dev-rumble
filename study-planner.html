@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Study Planner · CampusHub AI</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink-navy: #1c2541;
+        --deep-navy: #0b132b;
+        --parchment: #f7f5f0;
+        --brass: #b08d57;
+        --stacks-green: #3e5c50;
+        --ink-grey: #3a3f4b;
+        --danger: #9b3b3b;
+      }
+      body {
+        background: var(--parchment);
+        color: var(--ink-grey);
+        font-family: "Inter", sans-serif;
+      }
+      h1, h2, h3, .brand { font-family: "Fraunces", serif; }
+      .mono { font-family: "IBM Plex Mono", monospace; }
+
+      .sidebar-desktop {
+        background: var(--ink-navy);
+        min-height: 100vh;
+        width: 240px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        padding: 1.5rem 1rem;
+        display: none;
+      }
+      @media (min-width: 992px) {
+        .sidebar-desktop { display: block; }
+        .main-content { margin-left: 240px; }
+      }
+      .sidebar-desktop .brand {
+        color: var(--parchment);
+        font-size: 1.3rem;
+        margin-bottom: 2rem;
+        display: block;
+      }
+      .sidebar-desktop .nav-link {
+        color: #c7ccda;
+        font-size: 0.92rem;
+        padding: 0.55rem 0.75rem;
+        border-radius: 6px;
+        margin-bottom: 0.15rem;
+      }
+      .sidebar-desktop .nav-link.active,
+      .sidebar-desktop .nav-link:hover {
+        background: rgba(176, 141, 87, 0.15);
+        color: var(--brass);
+      }
+      .topbar {
+        background: var(--parchment);
+        border-bottom: 1px solid rgba(28, 37, 65, 0.1);
+        padding: 0.9rem 1.25rem;
+      }
+
+      .stamp-card {
+        background: #fff;
+        border: 1px solid rgba(28, 37, 65, 0.12);
+        border-radius: 10px;
+        padding: 1rem 1.1rem;
+        position: relative;
+      }
+      .stamp-card .tag {
+        position: absolute;
+        top: 0.7rem;
+        right: 0.7rem;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.65rem;
+        letter-spacing: 0.04em;
+        border: 1px solid currentColor;
+        border-radius: 4px;
+        padding: 0.15rem 0.45rem;
+      }
+      .tag-reading { color: var(--ink-navy); }
+      .tag-exam { color: var(--danger); }
+      .tag-group { color: var(--stacks-green); }
+      .tag-review { color: var(--brass); }
+
+      .study-card { margin-bottom: 0.75rem; }
+      .study-card .dashed-row {
+        border-top: 1px dashed rgba(28, 37, 65, 0.2);
+        padding-top: 0.5rem;
+        margin-top: 0.5rem;
+      }
+      .study-card .time {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.8rem;
+        color: var(--ink-navy);
+      }
+
+      .day-pill {
+        border: 1px solid rgba(28, 37, 65, 0.15);
+        border-radius: 8px;
+        background: #fff;
+        padding: 0.6rem 0.4rem;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.15s;
+      }
+      .day-pill.active {
+        background: var(--ink-navy);
+        color: #fff;
+        border-color: var(--ink-navy);
+      }
+      .day-pill .dow {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        opacity: 0.7;
+      }
+      .day-pill .dom { font-family: "Fraunces", serif; font-size: 1.15rem; }
+
+      .ai-strip {
+        background: var(--deep-navy);
+        color: #ede9df;
+        border-radius: 10px;
+        padding: 0.85rem 1.1rem;
+      }
+      .ai-strip .badge-ai {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.65rem;
+        color: var(--brass);
+        border: 1px solid var(--brass);
+        border-radius: 4px;
+        padding: 0.1rem 0.4rem;
+        margin-right: 0.5rem;
+      }
+      .ai-strip .btn-add {
+        background: var(--brass);
+        border: none;
+        color: var(--deep-navy);
+        font-size: 0.78rem;
+        font-weight: 600;
+        padding: 0.3rem 0.7rem;
+      }
+
+      .btn-brass { background: var(--brass); border: none; color: #fff; font-weight: 600; }
+      .btn-brass:hover { background: #96754a; color: #fff; }
+
+      .empty-day { text-align: center; padding: 2.5rem 1rem; color: rgba(58, 63, 75, 0.6); }
+    </style>
+  </head>
+  <body>
+    <nav class="sidebar-desktop">
+      <span class="brand">📖 CampusHub</span>
+      <ul class="nav flex-column">
+        <li class="nav-item"><a class="nav-link" href="dashboard.html">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="library.html">Library</a></li>
+        <li class="nav-item"><a class="nav-link" href="my-books.html">My Books</a></li>
+        <li class="nav-item"><a class="nav-link" href="reservations.html">Reservations</a></li>
+        <li class="nav-item"><a class="nav-link" href="campus-ai.html">Campus AI</a></li>
+        <li class="nav-item"><a class="nav-link active" href="study-planner.html">Study Planner</a></li>
+        <li class="nav-item"><a class="nav-link" href="announcement.html">Announcements</a></li>
+        <li class="nav-item"><a class="nav-link" href="fines.html">Fines</a></li>
+      </ul>
+    </nav>
+
+    <div class="offcanvas offcanvas-start" id="mobileNav" style="background: var(--ink-navy)">
+      <div class="offcanvas-header">
+        <span class="brand" style="color: var(--parchment)">📖 CampusHub</span>
+        <button class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+      </div>
+      <div class="offcanvas-body">
+        <ul class="nav flex-column">
+          <li class="nav-item"><a class="nav-link" href="dashboard.html" style="color: #c7ccda">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="library.html" style="color: #c7ccda">Library</a></li>
+          <li class="nav-item"><a class="nav-link" href="my-books.html" style="color: #c7ccda">My Books</a></li>
+          <li class="nav-item"><a class="nav-link" href="reservations.html" style="color: #c7ccda">Reservations</a></li>
+          <li class="nav-item"><a class="nav-link" href="campus-ai.html" style="color: #c7ccda">Campus AI</a></li>
+          <li class="nav-item"><a class="nav-link active" href="study-planner.html" style="color: var(--brass)">Study Planner</a></li>
+          <li class="nav-item"><a class="nav-link" href="announcement.html" style="color: #c7ccda">Announcements</a></li>
+          <li class="nav-item"><a class="nav-link" href="fines.html" style="color: #c7ccda">Fines</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <div class="topbar d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#mobileNav">☰</button>
+          <h1 class="h5 mb-0">Study Planner</h1>
+        </div>
+        <button class="btn btn-brass btn-sm" data-bs-toggle="modal" data-bs-target="#blockModal" id="newBlockBtn">
+          + New study block
+        </button>
+      </div>
+
+      <div class="container-fluid p-3 p-lg-4">
+        <div class="ai-strip mb-4" id="aiStrip"></div>
+        <div class="row g-2 mb-4" id="weekNav"></div>
+        <h2 class="h6 mono text-uppercase" style="letter-spacing: 0.05em; color: var(--ink-navy)" id="dayLabel"></h2>
+        <div id="blockList"></div>
+      </div>
+    </div>
+
+    <!-- Add/Edit study block modal (this page's own modal — NOT the review modal) -->
+    <div class="modal fade" id="blockModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content" style="background: var(--parchment);">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalTitle">New study block</h5>
+            <button class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="blockForm">
+              <input type="hidden" id="blockId">
+              <div class="mb-3">
+                <label class="form-label mono small">Title</label>
+                <input type="text" class="form-control" id="blockTitle" required placeholder="e.g. Chapter 6 reading">
+              </div>
+              <div class="row">
+                <div class="col-6 mb-3">
+                  <label class="form-label mono small">Date</label>
+                  <input type="date" class="form-control" id="blockDate" required>
+                </div>
+                <div class="col-6 mb-3">
+                  <label class="form-label mono small">Time</label>
+                  <input type="time" class="form-control" id="blockTime" required>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label mono small">Type</label>
+                <select class="form-select" id="blockType">
+                  <option value="reading">Reading</option>
+                  <option value="exam">Exam prep</option>
+                  <option value="group">Group session</option>
+                  <option value="review">Review</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label mono small">Notes (optional)</label>
+                <textarea class="form-control" id="blockNotes" rows="2"></textarea>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-outline-danger btn-sm d-none" id="deleteBlockBtn">Delete</button>
+            <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+            <button class="btn btn-brass btn-sm" id="saveBlockBtn">Save block</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      const STORAGE_KEY = "campushub_study_blocks";
+      let blocks = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") || [
+        { id: 1, title: "Read Ch. 4–6, Intro to Algorithms", date: todayPlus(0), time: "15:00", type: "reading", notes: "" },
+        { id: 2, title: "Midterm review — Data Structures", date: todayPlus(1), time: "10:00", type: "exam", notes: "Bring notes from lecture 8" },
+        { id: 3, title: "Study group — Thesis lit review", date: todayPlus(2), time: "17:30", type: "group", notes: "" },
+      ];
+
+      function todayPlus(n) {
+        const d = new Date();
+        d.setDate(d.getDate() + n);
+        return d.toISOString().slice(0, 10);
+      }
+      function saveBlocks() { localStorage.setItem(STORAGE_KEY, JSON.stringify(blocks)); }
+
+      const typeMeta = {
+        reading: { label: "READING", class: "tag-reading" },
+        exam: { label: "EXAM", class: "tag-exam" },
+        group: { label: "GROUP", class: "tag-group" },
+        review: { label: "REVIEW", class: "tag-review" },
+      };
+
+      let selectedDate = todayPlus(0);
+
+      function renderWeekNav() {
+        const nav = document.getElementById("weekNav");
+        nav.innerHTML = "";
+        for (let i = 0; i < 7; i++) {
+          const dateStr = todayPlus(i);
+          const d = new Date(dateStr + "T00:00:00");
+          const isActive = dateStr === selectedDate;
+          const col = document.createElement("div");
+          col.className = "col";
+          col.innerHTML = `
+      <div class="day-pill ${isActive ? "active" : ""}" data-date="${dateStr}">
+        <div class="dow">${d.toLocaleDateString(undefined, { weekday: "short" })}</div>
+        <div class="dom">${d.getDate()}</div>
+      </div>`;
+          nav.appendChild(col);
+        }
+        nav.querySelectorAll(".day-pill").forEach((el) => {
+          el.addEventListener("click", () => {
+            selectedDate = el.dataset.date;
+            renderWeekNav();
+            renderDay();
+          });
+        });
+      }
+
+      function renderDay() {
+        const label = document.getElementById("dayLabel");
+        const d = new Date(selectedDate + "T00:00:00");
+        label.textContent = d.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+
+        const list = document.getElementById("blockList");
+        const dayBlocks = blocks.filter((b) => b.date === selectedDate).sort((a, b) => a.time.localeCompare(b.time));
+
+        if (dayBlocks.length === 0) {
+          list.innerHTML = `<div class="stamp-card empty-day">Nothing planned for this day. Add a study block to get started.</div>`;
+          return;
+        }
+
+        list.innerHTML = dayBlocks.map((b) => {
+          const meta = typeMeta[b.type];
+          return `
+      <div class="stamp-card study-card" data-id="${b.id}" style="cursor:pointer;">
+        <span class="tag ${meta.class}">${meta.label}</span>
+        <div class="time">${formatTime(b.time)}</div>
+        <div class="fw-semibold">${escapeHtml(b.title)}</div>
+        ${b.notes ? `<div class="dashed-row small" style="opacity:.8;">${escapeHtml(b.notes)}</div>` : ""}
+      </div>`;
+        }).join("");
+
+        list.querySelectorAll(".study-card").forEach((card) => {
+          card.addEventListener("click", () => openEditModal(parseInt(card.dataset.id)));
+        });
+      }
+
+      function formatTime(t) {
+        const [h, m] = t.split(":");
+        const hour = parseInt(h);
+        const ampm = hour >= 12 ? "PM" : "AM";
+        const h12 = hour % 12 === 0 ? 12 : hour % 12;
+        return `${h12}:${m} ${ampm}`;
+      }
+      function escapeHtml(s) {
+        const div = document.createElement("div");
+        div.textContent = s;
+        return div.innerHTML;
+      }
+
+      function renderAiStrip() {
+        const strip = document.getElementById("aiStrip");
+        strip.innerHTML = `
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div>
+        <span class="badge-ai">CAMPUS AI</span>
+        <span>Your copy of <em>Intro to Algorithms</em> is due in 2 days — want a review block before then?</span>
+      </div>
+      <button class="btn btn-add" id="aiAddBtn">+ Add suggested block</button>
+    </div>`;
+        document.getElementById("aiAddBtn").addEventListener("click", () => {
+          blocks.push({ id: Date.now(), title: "Review before return — Intro to Algorithms", date: todayPlus(1), time: "18:00", type: "review", notes: "" });
+          saveBlocks();
+          strip.innerHTML = `<span class="badge-ai">CAMPUS AI</span> Added to your planner for tomorrow evening.`;
+          renderDay();
+        });
+      }
+
+      const modalEl = document.getElementById("blockModal");
+      const bsModal = new bootstrap.Modal(modalEl);
+
+      document.getElementById("newBlockBtn").addEventListener("click", () => {
+        document.getElementById("modalTitle").textContent = "New study block";
+        document.getElementById("blockForm").reset();
+        document.getElementById("blockId").value = "";
+        document.getElementById("blockDate").value = selectedDate;
+        document.getElementById("deleteBlockBtn").classList.add("d-none");
+      });
+
+      function openEditModal(id) {
+        const b = blocks.find((x) => x.id === id);
+        if (!b) return;
+        document.getElementById("modalTitle").textContent = "Edit study block";
+        document.getElementById("blockId").value = b.id;
+        document.getElementById("blockTitle").value = b.title;
+        document.getElementById("blockDate").value = b.date;
+        document.getElementById("blockTime").value = b.time;
+        document.getElementById("blockType").value = b.type;
+        document.getElementById("blockNotes").value = b.notes || "";
+        document.getElementById("deleteBlockBtn").classList.remove("d-none");
+        bsModal.show();
+      }
+
+      document.getElementById("saveBlockBtn").addEventListener("click", () => {
+        const form = document.getElementById("blockForm");
+        if (!form.reportValidity()) return;
+
+        const id = document.getElementById("blockId").value;
+        const data = {
+          title: document.getElementById("blockTitle").value,
+          date: document.getElementById("blockDate").value,
+          time: document.getElementById("blockTime").value,
+          type: document.getElementById("blockType").value,
+          notes: document.getElementById("blockNotes").value,
+        };
+
+        if (id) {
+          const b = blocks.find((x) => x.id === parseInt(id));
+          Object.assign(b, data);
+        } else {
+          blocks.push({ id: Date.now(), ...data });
+        }
+        saveBlocks();
+        selectedDate = data.date;
+        bsModal.hide();
+        renderWeekNav();
+        renderDay();
+      });
+
+      document.getElementById("deleteBlockBtn").addEventListener("click", () => {
+        const id = parseInt(document.getElementById("blockId").value);
+        blocks = blocks.filter((b) => b.id !== id);
+        saveBlocks();
+        bsModal.hide();
+        renderDay();
+      });
+
+      renderAiStrip();
+      renderWeekNav();
+      renderDay();
+    </script>
+  </body>
+</html>

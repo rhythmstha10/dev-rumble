@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Librarian Dashboard — CampusHub AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  :root{
+    --ink-navy:#1C2541; --deep-navy:#0B132B; --parchment:#F7F5F0;
+    --brass:#B08D57; --stacks-green:#3E5C50; --ink-grey:#3A3F4B; --danger:#9B3B3B;
+  }
+  body{ background:var(--parchment); color:var(--ink-grey); font-family:'Inter',sans-serif; }
+  h1,h2,h3{ font-family:'Fraunces',serif; color:var(--deep-navy); }
+  .mono{ font-family:'IBM Plex Mono',monospace; }
+
+  .sidebar-inner{ padding:1.6rem 1.2rem; }
+  .sidebar-inner .brand{ font-family:'Fraunces',serif; color:var(--parchment); font-weight:700; font-size:1.25rem; margin-bottom:2.2rem; display:block; }
+  .sidebar-inner .brand span{ color:var(--brass); }
+  .sidebar-inner .nav-link{ color:#C9CEDB; font-weight:500; padding:.55rem .7rem; border-radius:5px; margin-bottom:.2rem; font-size:.92rem; cursor:pointer; }
+  .sidebar-inner .nav-link.active{ background:rgba(176,141,87,0.15); color:var(--brass); font-weight:600; }
+  .sidebar-inner .nav-link:hover{ color:var(--parchment); }
+  .sidebar-desktop{ background:var(--deep-navy); min-height:100vh; width:230px; flex-shrink:0; }
+  .offcanvas.sidebar-mobile{ background:var(--deep-navy); width:230px; }
+  .offcanvas.sidebar-mobile .btn-close{ filter:invert(1); }
+
+  .topbar{ background:#fff; border-bottom:1px solid rgba(28,37,65,0.08); padding:.9rem 1.2rem; display:flex; align-items:center; justify-content:space-between; }
+  .topbar .role-tag{ font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:.08em; color:var(--brass); border:1px solid var(--brass); border-radius:3px; padding:.1rem .5rem; text-transform:uppercase; }
+  .hamburger-btn{ border:1px solid rgba(28,37,65,0.15); background:#fff; border-radius:4px; padding:.35rem .55rem; }
+
+  .stat-card{ background:#fff; border:1px solid rgba(28,37,65,0.1); border-radius:6px; padding:1rem 1.2rem; }
+  .stat-card .num{ font-family:'Fraunces',serif; font-size:1.7rem; color:var(--deep-navy); }
+  .stat-card .label{ font-size:.78rem; color:#6b7280; text-transform:uppercase; letter-spacing:.05em; }
+
+  .panel{ background:#fff; border:1px solid rgba(28,37,65,0.08); border-radius:6px; padding:1.3rem; }
+  .panel h3{ font-size:1.05rem; margin-bottom:1rem; }
+
+  table.lib-table{ width:100%; font-size:.86rem; }
+  table.lib-table th{ text-align:left; color:#6b7280; font-weight:600; font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; padding:.5rem .4rem; border-bottom:1px solid rgba(28,37,65,0.1); }
+  table.lib-table td{ padding:.6rem .4rem; border-bottom:1px dashed rgba(28,37,65,0.1); vertical-align:middle; }
+  table.lib-table tr:last-child td{ border-bottom:none; }
+
+  .pill{ font-family:'IBM Plex Mono',monospace; font-size:.68rem; padding:.15rem .5rem; border-radius:3px; white-space:nowrap; }
+  .pill-ok{ background:rgba(62,92,80,0.12); color:var(--stacks-green); }
+  .pill-warn{ background:rgba(176,141,87,0.15); color:var(--brass); }
+  .pill-danger{ background:rgba(155,59,59,0.1); color:var(--danger); }
+
+  .btn-brass{ background:var(--brass); color:var(--deep-navy); font-weight:600; border:none; padding:.4rem .8rem; border-radius:4px; font-size:.82rem; }
+  .btn-brass:hover{ background:#c49f6b; color:var(--deep-navy); }
+  .btn-outline-navy{ background:transparent; border:1px solid var(--ink-navy); color:var(--ink-navy); font-weight:600; padding:.4rem .8rem; border-radius:4px; font-size:.82rem; }
+  .btn-outline-navy:hover{ background:var(--ink-navy); color:var(--parchment); }
+  .btn-outline-danger-sm{ background:transparent; border:1px solid var(--danger); color:var(--danger); font-weight:600; padding:.3rem .65rem; border-radius:4px; font-size:.78rem; }
+  .btn-outline-danger-sm:hover{ background:var(--danger); color:#fff; }
+
+  .tab-pane-section{ display:none; }
+  .tab-pane-section.active{ display:block; }
+
+  .search-input{ border:1px solid rgba(28,37,65,0.15); border-radius:4px; padding:.45rem .7rem; font-size:.85rem; }
+
+  .modal-overlay{ display:none; position:fixed; inset:0; background:rgba(11,19,43,0.55); align-items:center; justify-content:center; z-index:50; padding:1rem; }
+  .modal-overlay.show{ display:flex; }
+  .modal-box{ background:var(--parchment); border-radius:6px; padding:1.6rem; max-width:440px; width:100%; }
+  .field-error{ color:var(--danger); font-size:.78rem; display:none; margin-top:-.5rem; margin-bottom:.6rem; }
+
+  @media (max-width: 767px){
+    table.lib-table thead{ display:none; }
+    table.lib-table tr{ display:block; border-bottom:1px solid rgba(28,37,65,0.12); padding:.6rem 0; }
+    table.lib-table td{ display:flex; justify-content:space-between; border-bottom:none; padding:.25rem 0; }
+    table.lib-table td::before{ content:attr(data-label); color:#6b7280; font-size:.75rem; font-weight:600; }
+  }
+</style>
+</head>
+<body>
+
+<div class="offcanvas offcanvas-start sidebar-mobile" tabindex="-1" id="mobileNav">
+  <div class="sidebar-inner">
+    <a class="brand" href="index.html">CampusHub <span>AI</span></a>
+    <nav class="nav flex-column">
+      <a class="nav-link active" data-tab="overview">Overview</a>
+      <a class="nav-link" data-tab="books">Books</a>
+      <a class="nav-link" data-tab="loans">Loans</a>
+      <a class="nav-link" data-tab="reservations">Reservations</a>
+      <a class="nav-link" data-tab="fines">Fines</a>
+      <a class="nav-link" data-tab="announcements">Announcements</a>
+    </nav>
+  </div>
+</div>
+
+<div class="d-flex">
+  <div class="sidebar-desktop d-none d-lg-block">
+    <div class="sidebar-inner">
+      <a class="brand" href="index.html">CampusHub <span>AI</span></a>
+      <nav class="nav flex-column" id="deskNav">
+        <a class="nav-link active" data-tab="overview">Overview</a>
+        <a class="nav-link" data-tab="books">Books</a>
+        <a class="nav-link" data-tab="loans">Loans</a>
+        <a class="nav-link" data-tab="reservations">Reservations</a>
+        <a class="nav-link" data-tab="fines">Fines</a>
+        <a class="nav-link" data-tab="announcements">Announcements</a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="flex-grow-1" style="min-width:0;">
+    <div class="topbar">
+      <div class="d-flex align-items-center gap-2">
+        <button class="hamburger-btn d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNav">☰</button>
+        <span class="fw-semibold" id="pageHeading" style="color:var(--deep-navy)">Overview</span>
+      </div>
+      <span class="role-tag">Librarian</span>
+    </div>
+
+    <div class="container-fluid p-3 p-lg-4">
+
+      <!-- OVERVIEW -->
+      <div class="tab-pane-section active" id="pane-overview">
+        <div class="row g-3 mb-4">
+          <div class="col-6 col-lg-3"><div class="stat-card"><div class="num" id="statTotalBooks">—</div><div class="label">Total books</div></div></div>
+          <div class="col-6 col-lg-3"><div class="stat-card"><div class="num" id="statActiveLoans">—</div><div class="label">Active loans</div></div></div>
+          <div class="col-6 col-lg-3"><div class="stat-card"><div class="num" id="statOverdue">—</div><div class="label">Overdue</div></div></div>
+          <div class="col-6 col-lg-3"><div class="stat-card"><div class="num" id="statReservations">—</div><div class="label">Reservations</div></div></div>
+        </div>
+        <div class="panel">
+          <h3>Needs attention</h3>
+          <div id="attentionList"></div>
+        </div>
+      </div>
+
+      <!-- BOOKS -->
+      <div class="tab-pane-section" id="pane-books">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <input class="search-input" id="bookSearch" placeholder="Search by title or author">
+          <button class="btn-brass" onclick="openBookModal()">+ Add book</button>
+        </div>
+        <div class="panel">
+          <table class="lib-table" id="booksTable">
+            <thead><tr><th>Title</th><th>Author</th><th>Copies</th><th>Status</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- LOANS -->
+      <div class="tab-pane-section" id="pane-loans">
+        <div class="panel">
+          <h3>Active loans and overdue</h3>
+          <table class="lib-table" id="loansTable">
+            <thead><tr><th>Book</th><th>Borrower</th><th>Due date</th><th>Status</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RESERVATIONS -->
+      <div class="tab-pane-section" id="pane-reservations">
+        <div class="panel">
+          <h3>Reservation queue</h3>
+          <table class="lib-table" id="reservationsTable">
+            <thead><tr><th>Book</th><th>Student</th><th>Position</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- FINES -->
+      <div class="tab-pane-section" id="pane-fines">
+        <div class="panel">
+          <h3>Outstanding fines</h3>
+          <table class="lib-table" id="finesTable">
+            <thead><tr><th>Student</th><th>Book</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ANNOUNCEMENTS -->
+      <div class="tab-pane-section" id="pane-announcements">
+        <div class="d-flex justify-content-end mb-3">
+          <button class="btn-brass" onclick="openAnnModal()">+ New announcement</button>
+        </div>
+        <div id="annList"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Book add/edit modal -->
+<div class="modal-overlay" id="bookModal">
+  <div class="modal-box">
+    <h3 id="bookModalTitle" style="font-size:1.1rem;">Add book</h3>
+    <input type="hidden" id="bookEditId">
+    <label class="mono small d-block mb-1">Title</label>
+    <input class="form-control mb-2" id="bookTitleInput" placeholder="Book title">
+    <div class="field-error" id="bookTitleError">Enter a title.</div>
+    <label class="mono small d-block mb-1">Author</label>
+    <input class="form-control mb-2" id="bookAuthorInput" placeholder="Author name">
+    <div class="field-error" id="bookAuthorError">Enter an author.</div>
+    <label class="mono small d-block mb-1">Copies</label>
+    <input type="number" min="1" class="form-control mb-3" id="bookCopiesInput" placeholder="3">
+    <div class="field-error" id="bookCopiesError">Enter at least 1 copy.</div>
+    <div class="d-flex gap-2">
+      <button class="btn-outline-navy" onclick="closeBookModal()">Cancel</button>
+      <button class="btn-brass" onclick="saveBook()">Save book</button>
+    </div>
+  </div>
+</div>
+
+<!-- Announcement modal -->
+<div class="modal-overlay" id="annModal">
+  <div class="modal-box">
+    <h3 style="font-size:1.1rem;">New announcement</h3>
+    <label class="mono small d-block mb-1">Title</label>
+    <input class="form-control mb-2" id="annTitleInput" placeholder="Announcement title">
+    <div class="field-error" id="annTitleError">Enter a title.</div>
+    <label class="mono small d-block mb-1">Message</label>
+    <textarea class="form-control mb-3" rows="3" id="annBodyInput" placeholder="Details for students"></textarea>
+    <div class="field-error" id="annBodyError">Enter a message.</div>
+    <div class="d-flex gap-2">
+      <button class="btn-outline-navy" onclick="closeAnnModal()">Cancel</button>
+      <button class="btn-brass" onclick="saveAnnouncement()">Post announcement</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ===== MOCK DATA (swap points noted per section) =====
+let books = [
+  { id: 1, title: "Database System Concepts", author: "Silberschatz et al.", copiesTotal: 3, copiesAvail: 2 },
+  { id: 2, title: "Python Programming", author: "John Zelle", copiesTotal: 5, copiesAvail: 4 },
+  { id: 3, title: "Computer Networks", author: "Andrew S. Tanenbaum", copiesTotal: 4, copiesAvail: 0 },
+  { id: 4, title: "Operating System Concepts", author: "Silberschatz, Galvin & Gagne", copiesTotal: 2, copiesAvail: 1 }
+];
+
+let loans = [
+  { id: 1, book: "Computer Networks", borrower: "Aashish R.", due: "2026-08-18", status: "overdue" },
+  { id: 2, book: "Database System Concepts", borrower: "Priya K.", due: "2026-08-25", status: "active" },
+  { id: 3, book: "Operating System Concepts", borrower: "Bikash T.", due: "2026-08-23", status: "active" }
+];
+
+let reservations = [
+  { id: 1, book: "Computer Networks", student: "Sunita M.", position: 1 },
+  { id: 2, book: "Computer Networks", student: "Kritika S.", position: 2 }
+];
+
+let fines = [
+  { id: 1, student: "Aashish R.", book: "Computer Networks", amount: 40, status: "unpaid" },
+  { id: 2, student: "Rojan D.", book: "Design Patterns", amount: 20, status: "paid" }
+];
+
+let announcements = [
+  { id: 1, title: "Library closed for maintenance", body: "The library will be closed Saturday for shelving maintenance.", date: "2026-08-19" }
+];
+
+// ===== TAB SWITCHING =====
+const tabs = document.querySelectorAll('[data-tab]');
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    const name = tab.dataset.tab;
+    document.querySelectorAll('.tab-pane-section').forEach(p => p.classList.remove('active'));
+    document.getElementById('pane-' + name).classList.add('active');
+    document.querySelectorAll('[data-tab]').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll(`[data-tab="${name}"]`).forEach(t => t.classList.add('active'));
+    document.getElementById('pageHeading').textContent = tab.textContent;
+    const offcanvasEl = document.getElementById('mobileNav');
+    const inst = bootstrap.Offcanvas.getInstance(offcanvasEl);
+    if(inst) inst.hide();
+  });
+});
+
+// ===== OVERVIEW =====
+function renderOverview(){
+  document.getElementById('statTotalBooks').textContent = books.reduce((s,b) => s + b.copiesTotal, 0);
+  document.getElementById('statActiveLoans').textContent = loans.filter(l => l.status !== 'returned').length;
+  document.getElementById('statOverdue').textContent = loans.filter(l => l.status === 'overdue').length;
+  document.getElementById('statReservations').textContent = reservations.length;
+
+  const attn = document.getElementById('attentionList');
+  const overdue = loans.filter(l => l.status === 'overdue');
+  const outOfStock = books.filter(b => b.copiesAvail === 0);
+  if(overdue.length === 0 && outOfStock.length === 0){
+    attn.innerHTML = `<p class="small text-muted mb-0">Nothing urgent right now.</p>`;
+    return;
+  }
+  attn.innerHTML = [
+    ...overdue.map(l => `<div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px dashed rgba(28,37,65,0.1);"><span class="small">${l.book} — overdue from ${l.borrower}</span><span class="pill pill-danger">OVERDUE</span></div>`),
+    ...outOfStock.map(b => `<div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px dashed rgba(28,37,65,0.1);"><span class="small">${b.title} — all copies checked out</span><span class="pill pill-warn">OUT OF STOCK</span></div>`)
+  ].join('');
+}
+
+// ===== BOOKS =====
+function renderBooks(filter=''){
+  const tbody = document.querySelector('#booksTable tbody');
+  const f = filter.toLowerCase();
+  const rows = books.filter(b => b.title.toLowerCase().includes(f) || b.author.toLowerCase().includes(f));
+  tbody.innerHTML = rows.map(b => `
+    <tr>
+      <td data-label="Title">${b.title}</td>
+      <td data-label="Author">${b.author}</td>
+      <td data-label="Copies">${b.copiesAvail} of ${b.copiesTotal}</td>
+      <td data-label="Status"><span class="pill ${b.copiesAvail > 0 ? 'pill-ok' : 'pill-danger'}">${b.copiesAvail > 0 ? 'AVAILABLE' : 'OUT'}</span></td>
+      <td data-label="">
+        <button class="btn-outline-navy" style="padding:.25rem .6rem;font-size:.75rem;" onclick="openBookModal(${b.id})">Edit</button>
+        <button class="btn-outline-danger-sm" onclick="deleteBook(${b.id})">Remove</button>
+      </td>
+    </tr>`).join('');
+}
+document.getElementById('bookSearch').addEventListener('input', e => renderBooks(e.target.value));
+
+function openBookModal(id){
+  document.getElementById('bookTitleError').style.display = 'none';
+  document.getElementById('bookAuthorError').style.display = 'none';
+  document.getElementById('bookCopiesError').style.display = 'none';
+  if(id){
+    const b = books.find(x => x.id === id);
+    document.getElementById('bookModalTitle').textContent = 'Edit book';
+    document.getElementById('bookEditId').value = id;
+    document.getElementById('bookTitleInput').value = b.title;
+    document.getElementById('bookAuthorInput').value = b.author;
+    document.getElementById('bookCopiesInput').value = b.copiesTotal;
+  } else {
+    document.getElementById('bookModalTitle').textContent = 'Add book';
+    document.getElementById('bookEditId').value = '';
+    document.getElementById('bookTitleInput').value = '';
+    document.getElementById('bookAuthorInput').value = '';
+    document.getElementById('bookCopiesInput').value = '';
+  }
+  document.getElementById('bookModal').classList.add('show');
+}
+function closeBookModal(){ document.getElementById('bookModal').classList.remove('show'); }
+
+function saveBook(){
+  const title = document.getElementById('bookTitleInput').value.trim();
+  const author = document.getElementById('bookAuthorInput').value.trim();
+  const copies = parseInt(document.getElementById('bookCopiesInput').value);
+  let valid = true;
+  document.getElementById('bookTitleError').style.display = title ? 'none' : 'block';
+  document.getElementById('bookAuthorError').style.display = author ? 'none' : 'block';
+  document.getElementById('bookCopiesError').style.display = (copies >= 1) ? 'none' : 'block';
+  if(!title || !author || !(copies >= 1)) return;
+
+  // ===== SWAP POINT =====
+  // POST /api/books/ (new) or PATCH /api/books/{id}/ (edit)
+  const editId = document.getElementById('bookEditId').value;
+  if(editId){
+    const b = books.find(x => x.id === parseInt(editId));
+    const diff = copies - b.copiesTotal;
+    b.title = title; b.author = author; b.copiesTotal = copies;
+    b.copiesAvail = Math.max(0, b.copiesAvail + diff);
+  } else {
+    books.push({ id: Date.now(), title, author, copiesTotal: copies, copiesAvail: copies });
+  }
+  closeBookModal();
+  renderBooks(document.getElementById('bookSearch').value);
+  renderOverview();
+}
+
+function deleteBook(id){
+  // ===== SWAP POINT =====
+  // DELETE /api/books/{id}/
+  books = books.filter(b => b.id !== id);
+  renderBooks(document.getElementById('bookSearch').value);
+  renderOverview();
+}
+
+// ===== LOANS =====
+function renderLoans(){
+  const tbody = document.querySelector('#loansTable tbody');
+  tbody.innerHTML = loans.map(l => `
+    <tr>
+      <td data-label="Book">${l.book}</td>
+      <td data-label="Borrower">${l.borrower}</td>
+      <td data-label="Due date">${new Date(l.due).toLocaleDateString(undefined,{month:'short',day:'numeric'})}</td>
+      <td data-label="Status"><span class="pill ${l.status === 'overdue' ? 'pill-danger' : 'pill-ok'}">${l.status.toUpperCase()}</span></td>
+      <td data-label=""><button class="btn-outline-navy" style="padding:.25rem .6rem;font-size:.75rem;" onclick="markReturned(${l.id})">Mark returned</button></td>
+    </tr>`).join('');
+}
+function markReturned(id){
+  // ===== SWAP POINT =====
+  // POST /api/loans/{id}/return/
+  const loan = loans.find(l => l.id === id);
+  if(loan){
+    const book = books.find(b => b.title === loan.book);
+    if(book) book.copiesAvail = Math.min(book.copiesTotal, book.copiesAvail + 1);
+  }
+  loans = loans.filter(l => l.id !== id);
+  renderLoans();
+  renderOverview();
+  renderBooks(document.getElementById('bookSearch').value);
+}
+
+// ===== RESERVATIONS =====
+function renderReservations(){
+  const tbody = document.querySelector('#reservationsTable tbody');
+  if(reservations.length === 0){
+    tbody.innerHTML = `<tr><td colspan="4" class="text-muted small">No active reservations.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = reservations.map(r => `
+    <tr>
+      <td data-label="Book">${r.book}</td>
+      <td data-label="Student">${r.student}</td>
+      <td data-label="Position">${r.position}</td>
+      <td data-label=""><button class="btn-outline-danger-sm" onclick="cancelReservation(${r.id})">Cancel</button></td>
+    </tr>`).join('');
+}
+function cancelReservation(id){
+  // ===== SWAP POINT =====
+  // POST /api/reservations/{id}/cancel/
+  reservations = reservations.filter(r => r.id !== id);
+  renderReservations();
+  renderOverview();
+}
+
+// ===== FINES =====
+function renderFines(){
+  const tbody = document.querySelector('#finesTable tbody');
+  tbody.innerHTML = fines.map(f => `
+    <tr>
+      <td data-label="Student">${f.student}</td>
+      <td data-label="Book">${f.book}</td>
+      <td data-label="Amount">Rs. ${f.amount}</td>
+      <td data-label="Status"><span class="pill ${f.status === 'paid' ? 'pill-ok' : 'pill-warn'}">${f.status.toUpperCase()}</span></td>
+      <td data-label="">${f.status === 'unpaid' ? `<button class="btn-outline-navy" style="padding:.25rem .6rem;font-size:.75rem;" onclick="markPaid(${f.id})">Mark paid</button>` : ''}</td>
+    </tr>`).join('');
+}
+function markPaid(id){
+  // ===== SWAP POINT =====
+  // POST /api/fines/{id}/pay/
+  const f = fines.find(x => x.id === id);
+  if(f) f.status = 'paid';
+  renderFines();
+}
+
+// ===== ANNOUNCEMENTS =====
+function renderAnnouncements(){
+  const list = document.getElementById('annList');
+  list.innerHTML = announcements.map(a => `
+    <div class="panel mb-3">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <h3 style="font-size:.98rem;">${a.title}</h3>
+          <p class="small mb-1">${a.body}</p>
+          <span class="mono small text-muted">${new Date(a.date).toLocaleDateString(undefined,{month:'short',day:'numeric'})}</span>
+        </div>
+        <button class="btn-outline-danger-sm" onclick="deleteAnnouncement(${a.id})">Delete</button>
+      </div>
+    </div>`).join('');
+}
+function openAnnModal(){
+  document.getElementById('annTitleInput').value = '';
+  document.getElementById('annBodyInput').value = '';
+  document.getElementById('annTitleError').style.display = 'none';
+  document.getElementById('annBodyError').style.display = 'none';
+  document.getElementById('annModal').classList.add('show');
+}
+function closeAnnModal(){ document.getElementById('annModal').classList.remove('show'); }
+function saveAnnouncement(){
+  const title = document.getElementById('annTitleInput').value.trim();
+  const body = document.getElementById('annBodyInput').value.trim();
+  document.getElementById('annTitleError').style.display = title ? 'none' : 'block';
+  document.getElementById('annBodyError').style.display = body ? 'none' : 'block';
+  if(!title || !body) return;
+
+  // ===== SWAP POINT =====
+  // POST /api/announcements/
+  announcements.unshift({ id: Date.now(), title, body, date: new Date().toISOString().slice(0,10) });
+  closeAnnModal();
+  renderAnnouncements();
+}
+function deleteAnnouncement(id){
+  // ===== SWAP POINT =====
+  // DELETE /api/announcements/{id}/
+  announcements = announcements.filter(a => a.id !== id);
+  renderAnnouncements();
+}
+
+// ===== INIT =====
+renderOverview();
+renderBooks();
+renderLoans();
+renderReservations();
+renderFines();
+renderAnnouncements();
+</script>
+</body>
+</html>
