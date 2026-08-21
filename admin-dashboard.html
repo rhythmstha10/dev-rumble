@@ -167,7 +167,7 @@
         <div class="col-6 col-md-3">
           <div class="stamp-card brass">
             <span data-tag>FINE</span>
-            <p class="stamp-value" id="statFines">$1,046</p>
+            <p class="stamp-value" id="statFines">Rs. 1,046</p>
             <p class="stamp-label mb-0">Fines Outstanding</p>
           </div>
         </div>
@@ -376,7 +376,7 @@
         <td data-label="Name">${s.name}</td>
         <td data-label="Email" class="mono">${s.email}</td>
         <td data-label="Books Borrowed">${s.borrowed}</td>
-        <td data-label="Fines" class="mono">$${s.fines.toFixed(2)}</td>
+        <td data-label="Fines" class="mono">Rs. ${s.fines.toFixed(2)}</td>
         <td data-label="Status">${statusBadge(s.status)}</td>
         <td data-label="Actions">
           <button class="btn btn-sm btn-outline-navy" onclick="toggleStudentStatus('${s.email}')">
