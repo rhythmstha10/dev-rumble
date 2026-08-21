@@ -84,3 +84,26 @@ def my_reservations_view(request):
         ]
     }
     return render(request, "reservations/my_reservations.html", context)
+
+@login_required
+@require_http_methods(["GET"])
+def all_reservations_view(request):
+    """GET /reservations/all/ — Librarian/SuperAdmin only. Every active reservation, any student."""
+    if request.user.role not in ['LIBRARIAN', 'SUPERADMIN']:
+        return JsonResponse({"error": "Not authorized"}, status=403)
+
+    reservations = (
+        Reservation.objects.filter(status__in=Reservation.ACTIVE_STATUSES)
+        .select_related("user", "book")
+        .order_by("book_id", "created_at")
+    )
+    data = [
+        {
+            "id": r.id,
+            "book": r.book.title,
+            "user": r.user.username,
+            "position": services.queue_position(r),
+        }
+        for r in reservations
+    ]
+    return JsonResponse({"reservations": data})

@@ -1,20 +1,37 @@
 {% extends "accounts/base.html" %}
 
-{% block title %}Login{% endblock %}
+{% block title %}Log in — CampusHub AI{% endblock %}
 
 {% block content %}
-    <h2>Welcome back</h2>
-    <p class="subtitle">Library Management System</p>
-    
+    <div class="auth-tabs" style="display:flex; border-bottom:1px solid rgba(28,37,65,0.12); margin-bottom:1.6rem;">
+        <div class="auth-tab active" style="flex:1; text-align:center; padding:.6rem 0; font-weight:600; font-size:.92rem; color:var(--deep-navy); border-bottom:2px solid var(--brass);">Log in</div>
+    </div>
+
+    {% if form.non_field_errors %}
+        <ul class="errorlist">
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
 
     <form method="POST">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Log In</button>
-        <p class="footer-link"><a href="{% url 'password-reset-page' %}">Forgot password?</a></p>
+        <div class="mb-3">
+            <label class="form-label">Username</label>
+            {{ form.username }}
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Password</label>
+            {{ form.password }}
+        </div>
+        <button type="submit" class="btn btn-brass">Log in</button>
     </form>
-    
 
-    <p class="footer-link">New here? <a href="{% url 'register-page' %}">Create an account</a></p>
-    
+    <div class="auth-footnote">
+        <a href="{% url 'password-reset-page' %}">Forgot password?</a>
+    </div>
+    <div class="auth-footnote">
+        New here? <a href="{% url 'register-page' %}">Create an account</a>
+    </div>
 {% endblock %}

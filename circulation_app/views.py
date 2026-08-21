@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
 from datetime import timedelta
+from accounts.permissions import IsLibrarianOrSuperAdmin
 
 from catalog.models import Book
 from .models import Loan, Fine
@@ -132,3 +133,32 @@ class FineViewSet(viewsets.ReadOnlyModelViewSet):
         if user.role in ['LIBRARIAN', 'SUPERADMIN']:
             return Fine.objects.select_related('loan', 'loan__user', 'loan__book').all()
         return Fine.objects.select_related('loan', 'loan__user', 'loan__book').filter(loan__user=user)
+
+class AllLoansView(APIView):
+    """GET /circulation/all-loans/ — Librarian/SuperAdmin only. Every active loan, any student."""
+    permission_classes = [IsLibrarianOrSuperAdmin]
+
+    def get(self, request):
+        loans = Loan.objects.filter(status__in=['borrowed', 'overdue']).select_related('user', 'book').order_by('due_date')
+        return Response(LoanSerializer(loans, many=True).data)
+
+
+class MarkFinePaidView(APIView):
+    """POST /circulation/mark-fine-paid/  { "fine_id": 3 }  — Librarian/SuperAdmin only."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        if request.user.role not in ['LIBRARIAN', 'SUPERADMIN']:
+            return Response({"error": "Not authorized"}, status=status.HTTP_403_FORBIDDEN)
+
+        fine_id = request.data.get('fine_id')
+        try:
+            fine = Fine.objects.get(id=fine_id)
+        except Fine.DoesNotExist:
+            return Response({"error": "Fine not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        fine.is_paid = True
+        fine.save()
+        return Response(FineSerializer(fine).data, status=status.HTTP_200_OK)
+    
+

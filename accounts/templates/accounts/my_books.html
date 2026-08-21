@@ -1,0 +1,79 @@
+{% extends "accounts/app_base.html" %}
+
+{% block title %}My Books — CampusHub AI{% endblock %}
+
+{% block content %}
+<div style="display:flex; flex-direction:column; gap:1.5rem; padding:1rem;">
+  <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid rgba(28,37,65,0.1); padding-bottom:1rem;">
+    <h2 style="margin:0; font-size:1.3rem;">Currently Borrowed ({{ active_loans.count }})</h2>
+  </div>
+
+  {% if active_loans %}
+    {% for loan in active_loans %}
+    <div style="background:#fff; border:1px solid rgba(28,37,65,0.1); border-radius:6px; padding:1.2rem; margin-bottom:1rem;">
+      <div style="display:flex; justify-content:space-between; align-items:start; gap:1rem;">
+        <div style="flex:1;">
+          <h3 style="margin:0 0 .3rem 0; font-size:1.05rem;">{{ loan.book.title }}</h3>
+          <p style="margin:0; color:#6b7280; font-size:.9rem;">{{ loan.book.author_name }}</p>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:.8rem; font-size:.85rem;">
+            <div><span style="color:#8b93a3;">Borrowed:</span> {{ loan.borrow_date|date:"M d, Y" }}</div>
+            <div><span style="color:#8b93a3;">Due:</span> {{ loan.due_date|date:"M d, Y" }}</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:.5rem;">
+          <button class="btn-outline-navy" style="padding:.4rem .8rem; font-size:.82rem;">Renew</button>
+          <button class="btn-brass" onclick="returnLoan({{ loan.id }})" style="padding:.4rem .8rem; font-size:.82rem;">Return</button>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <p style="color:#8b93a3; padding:2rem; text-align:center;">No active loans right now.</p>
+  {% endif %}
+
+  <hr style="margin:2rem 0; border:none; border-top:1px dashed rgba(28,37,65,0.1);">
+
+  <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid rgba(28,37,65,0.1); padding-bottom:1rem;">
+    <h2 style="margin:0; font-size:1.3rem;">History</h2>
+  </div>
+
+  {% if history_loans %}
+    {% for loan in history_loans %}
+    <div style="background:#fff; border:1px solid rgba(28,37,65,0.1); border-radius:6px; padding:1.2rem; margin-bottom:1rem;">
+      <h3 style="margin:0 0 .3rem 0; font-size:1.05rem;">{{ loan.book.title }}</h3>
+      <p style="margin:0; color:#6b7280; font-size:.9rem;">{{ loan.book.author_name }}</p>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem; margin-top:.8rem; font-size:.85rem;">
+        <div><span style="color:#8b93a3;">Borrowed:</span> {{ loan.borrow_date|date:"M d, Y" }}</div>
+        <div><span style="color:#8b93a3;">Returned:</span> {{ loan.return_date|date:"M d, Y" }}</div>
+        <div style="text-align:right;"><span style="color:#8b93a3;">Duration:</span> {% widthratio loan.return_date loan.borrow_date 1 %} days</div>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <p style="color:#8b93a3; padding:2rem; text-align:center;">No borrow history yet.</p>
+  {% endif %}
+</div>
+
+<script>
+const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+function authFetch(url, options={}) {
+  return fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrftoken,
+      'X-Requested-With': 'XMLHttpRequest',
+      ...(options.headers || {})
+    }
+  }).then(r => r.json().then(body => ({ ok: r.ok, status: r.status, body })));
+}
+
+function returnLoan(loanId) {
+  authFetch('/circulation/return/', { method: 'POST', body: JSON.stringify({ loan_id: loanId }) })
+    .then(res => {
+      if (res.ok) { location.reload(); }
+      else alert(res.body.error || 'Could not return book.');
+    });
+}
+</script>
+{% endblock %}

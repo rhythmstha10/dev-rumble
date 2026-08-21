@@ -1,17 +1,94 @@
-{% extends "accounts/base.html" %}
+{% extends "accounts/app_base.html" %}
 
-{% block title %}My Dashboard{% endblock %}
+{% block title %}Dashboard — CampusHub AI{% endblock %}
 
 {% block content %}
-    <h2>Welcome, {{ user.username }}</h2>
-    <p class="subtitle">Member Dashboard</p>
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="stamp-card" data-tag="LIBRARY">
+        <div class="stamp-label">Borrowed books</div>
+        <div class="stamp-value">{{ borrowed_count }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stamp-card warn" data-tag="DUE SOON">
+        <div class="stamp-label">Due soon</div>
+        <div class="stamp-value">{{ due_soon_count }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stamp-card danger" data-tag="OVERDUE">
+        <div class="stamp-label">Overdue</div>
+        <div class="stamp-value">{{ overdue_count }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stamp-card warn" data-tag="FINE">
+        <div class="stamp-label">Current fine</div>
+        <div class="stamp-value">Rs. {{ total_fine }}</div>
+      </div>
+    </div>
+  </div>
 
-    <p style="font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 14px; color: #6B5D4D; margin-bottom: 24px;">
-        Browse books, view your borrowed items, and manage your profile.
-    </p>
+  <div class="row g-3 mb-4">
+    <div class="col-lg-4">
+      <div class="panel">
+        <h3>My Books</h3>
+        {% for loan in active_loans %}
+        <div class="book-row">
+          <span>{{ loan.book.title }}</span>
+          <span class="due-pill {% if loan.due_date < now %}overdue{% endif %}">
+            Due {{ loan.due_date|date:"M d" }}
+          </span>
+        </div>
+        {% empty %}
+        <p class="text-muted" style="font-size:.85rem;">No active loans right now.</p>
+        {% endfor %}
+      </div>
+    </div>
 
-    <a href="{% url 'profile-page' %}"><button>My Profile</button></a>
-    <a href="{% url 'book-list-page' %}"><button>Browse Books</button></a>
+    <div class="col-lg-4">
+      <div class="panel">
+        <h3>Borrowing activity</h3>
+        <p class="text-muted" style="font-size:.8rem;">Coming soon — needs a real per-month borrow count endpoint.</p>
+      </div>
+    </div>
 
-    <p class="footer-link"><a href="{% url 'logout-page' %}">Log out</a></p>
+    <div class="col-lg-4">
+      <div class="ai-panel">
+        <h3>Campus AI</h3>
+        <p style="font-size:.85rem; opacity:.85;">Coming soon — will connect to /api/ai/chat/ once wired up.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-8">
+      <div class="panel">
+        <h3>Recommended for you</h3>
+        <p class="text-muted" style="font-size:.85rem;">Coming soon — will call /api/ai/recommend/.</p>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="panel">
+        <h3>Announcements</h3>
+        <div id="memberAnnList"><p class="text-muted" style="font-size:.85rem;">Loading...</p></div>
+      </div>
+    </div>
+  </div>
+  <script>
+  fetch('/api/announcements/').then(r => r.json()).then(data => {
+    const list = data.results || data;
+    const container = document.getElementById('memberAnnList');
+    if (list.length === 0) {
+      container.innerHTML = '<p class="text-muted" style="font-size:.85rem;">No announcements yet.</p>';
+      return;
+    }
+    container.innerHTML = list.slice(0, 3).map(a => `
+      <div class="announce">
+        <div class="date">${new Date(a.created_at).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}).toUpperCase()}</div>
+        ${a.title}
+      </div>`).join('');
+  });
+  </script>
 {% endblock %}

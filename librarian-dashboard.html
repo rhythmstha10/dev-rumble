@@ -175,12 +175,28 @@
       </div>
 
       <!-- ANNOUNCEMENTS -->
-      <div class="tab-pane-section" id="pane-announcements">
+            <div class="tab-pane-section" id="pane-announcements">
         <div class="d-flex justify-content-end mb-3">
           <button class="btn-brass" onclick="openAnnModal()">+ New announcement</button>
         </div>
-        <div id="annList"></div>
+        <div id="annList"><p class="small text-muted">Loading...</p></div>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="annModal" style="display:none; position:fixed; inset:0; background:rgba(11,19,43,0.55); align-items:center; justify-content:center; z-index:50; padding:1rem;">
+  <div class="modal-box" style="background:var(--parchment); border-radius:6px; padding:1.6rem; max-width:440px; width:100%;">
+    <h3 style="font-size:1.1rem;">New announcement</h3>
+    <label class="mono small d-block mb-1">Title</label>
+    <input class="form-control mb-2" id="annTitleInput" placeholder="Announcement title">
+    <label class="mono small d-block mb-1">Message</label>
+    <textarea class="form-control mb-3" rows="3" id="annBodyInput" placeholder="Details for students"></textarea>
+    <div class="d-flex gap-2">
+      <button class="btn-outline-navy" onclick="closeAnnModal()">Cancel</button>
+      <button class="btn-brass" onclick="saveAnnouncement()">Post announcement</button>
+    </div>
+  </div>
 
     </div>
   </div>

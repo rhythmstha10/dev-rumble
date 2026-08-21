@@ -1,18 +1,164 @@
-{% extends "accounts/base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard — CampusHub AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  :root{
+    --ink-navy:#1C2541; --deep-navy:#0B132B; --parchment:#F7F5F0;
+    --brass:#B08D57; --stacks-green:#3E5C50; --ink-grey:#3A3F4B; --danger:#9B3B3B;
+  }
+  body{ background:var(--parchment); color:var(--ink-grey); font-family:'Inter',sans-serif; }
+  h1,h2,h3{ font-family:'Fraunces',serif; color:var(--deep-navy); }
+  .mono{ font-family:'IBM Plex Mono',monospace; }
+  .sidebar-inner{ padding:1.6rem 1.2rem; }
+  .sidebar-inner .brand{ font-family:'Fraunces',serif; color:var(--parchment); font-weight:700; font-size:1.25rem; margin-bottom:2.2rem; display:block; }
+  .sidebar-inner .brand span{ color:var(--brass); }
+  .sidebar-inner .nav-link{ color:#C9CEDB; font-weight:500; padding:.55rem .7rem; border-radius:5px; margin-bottom:.2rem; font-size:.92rem; cursor:pointer; }
+  .sidebar-inner .nav-link.active{ background:rgba(176,141,87,0.15); color:var(--brass); font-weight:600; }
+  .sidebar-inner .nav-link:hover{ color:var(--parchment); }
+  .sidebar-desktop{ background:var(--deep-navy); min-height:100vh; width:230px; flex-shrink:0; }
+  .offcanvas.sidebar-mobile{ background:var(--deep-navy); width:230px; }
+  .offcanvas.sidebar-mobile .btn-close{ filter:invert(1); }
+  .topbar{ background:#fff; border-bottom:1px solid rgba(28,37,65,0.08); padding:.9rem 1.2rem; display:flex; align-items:center; justify-content:space-between; }
+  .topbar .role-tag{ font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:.08em; color:var(--danger); border:1px solid var(--danger); border-radius:3px; padding:.1rem .5rem; text-transform:uppercase; }
+  .hamburger-btn{ border:1px solid rgba(28,37,65,0.15); background:#fff; border-radius:4px; padding:.35rem .55rem; }
+  .stat-card{ background:#fff; border:1px solid rgba(28,37,65,0.1); border-radius:6px; padding:1rem 1.2rem; }
+  .stat-card .num{ font-family:'Fraunces',serif; font-size:1.7rem; color:var(--deep-navy); }
+  .stat-card .label{ font-size:.78rem; color:#6b7280; text-transform:uppercase; letter-spacing:.05em; }
+  .panel{ background:#fff; border:1px solid rgba(28,37,65,0.08); border-radius:6px; padding:1.3rem; }
+  .panel h3{ font-size:1.05rem; margin-bottom:1rem; }
+  .btn-brass{ background:var(--brass); color:var(--deep-navy); font-weight:600; border:none; padding:.4rem .8rem; border-radius:4px; font-size:.82rem; }
+  .btn-brass:hover{ background:#c49f6b; color:var(--deep-navy); }
+  .btn-outline-navy{ background:transparent; border:1px solid var(--ink-navy); color:var(--ink-navy); font-weight:600; padding:.4rem .8rem; border-radius:4px; font-size:.82rem; }
+  .btn-outline-navy:hover{ background:var(--ink-navy); color:var(--parchment); }
+  .action-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; margin-top:1.5rem; }
+  .action-btn{ display:block; background:#fff; border:1px solid rgba(28,37,65,0.1); border-radius:6px; padding:1rem; text-align:center; text-decoration:none; color:var(--ink-navy); font-weight:600; font-size:.85rem; transition:all .2s; }
+  .action-btn:hover{ background:var(--deep-navy); color:var(--parchment); border-color:var(--deep-navy); }
+</style>
+</head>
+<body>
+{% csrf_token %}
 
-{% block title %}Super Admin Dashboard{% endblock %}
+<div class="offcanvas offcanvas-start sidebar-mobile" tabindex="-1" id="mobileNav">
+  <div class="sidebar-inner">
+    <a class="brand" href="{% url 'dashboard-page' %}">CampusHub <span>AI</span></a>
+    <nav class="nav flex-column">
+      <a class="nav-link active" href="{% url 'dashboard-page' %}">Dashboard</a>
+      <a class="nav-link" href="{% url 'admin:index' %}">System Admin</a>
+      <a class="nav-link" href="{% url 'logout-page' %}">Log out</a>
+    </nav>
+  </div>
+</div>
 
-{% block content %}
-    <h2>Welcome, {{ user.username }}</h2>
-    <p class="subtitle">Super Admin Dashboard</p>
+<div class="d-flex">
+  <div class="sidebar-desktop d-none d-lg-block">
+    <div class="sidebar-inner">
+      <a class="brand" href="{% url 'dashboard-page' %}">CampusHub <span>AI</span></a>
+      <nav class="nav flex-column">
+        <a class="nav-link active" href="{% url 'dashboard-page' %}">Dashboard</a>
+        <a class="nav-link" href="{% url 'admin:index' %}">System Admin</a>
+        <a class="nav-link" href="{% url 'logout-page' %}">Log out</a>
+      </nav>
+    </div>
+  </div>
 
-    <p style="font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 14px; color: #6B5D4D; margin-bottom: 24px;">
-        You have full control over the system — manage users, roles, books, and library operations.
-    </p>
+  <div class="flex-grow-1" style="min-width:0;">
+    <div class="topbar">
+      <div class="d-flex align-items-center gap-2">
+        <button class="hamburger-btn d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNav">☰</button>
+        <span class="fw-semibold" style="color:var(--deep-navy)">System Dashboard</span>
+      </div>
+      <span class="role-tag">{{ user.role }}</span>
+    </div>
 
-    <a href="{% url 'profile-page' %}"><button style="margin-bottom: 12px;">My Profile</button></a>
-    <a href="{% url 'admin:index' %}"><button style="background-color: #6B5D4D;">Manage Users (Admin Panel)</button></a>
-    <a href="{% url 'book-list-page' %}"><button>Browse Books</button></a>
+    <div class="container-fluid p-3 p-lg-4">
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3"><div class="stat-card"><div class="num" id="statTotalStudents">—</div><div class="label">Total students</div></div></div>
+        <div class="col-6 col-lg-3"><div class="stat-card"><div class="num" id="statTotalBooks">—</div><div class="label">Total books</div></div></div>
+        <div class="col-6 col-lg-3"><div class="stat-card"><div class="num" id="statActiveLoans">—</div><div class="label">Active loans</div></div></div>
+        <div class="col-6 col-lg-3"><div class="stat-card"><div class="num" id="statOverdue">—</div><div class="label">Overdue</div></div></div>
+      </div>
 
-    <p class="footer-link"><a href="{% url 'logout-page' %}">Log out</a></p>
-{% endblock %}
+      <div class="row g-3 mb-4">
+        <div class="col-lg-6">
+          <div class="panel">
+            <h3>Outstanding fines</h3>
+            <div id="finesDisplay" class="d-flex align-items-baseline gap-2">
+              <span style="font-family:'Fraunces',serif; font-size:2rem; color:var(--danger);" id="finesAmount">—</span>
+              <span style="color:#6b7280; font-size:.9rem;">total across all members</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="panel">
+            <h3>Active reservations</h3>
+            <div id="reservationsDisplay" class="d-flex align-items-baseline gap-2">
+              <span style="font-family:'Fraunces',serif; font-size:2rem; color:var(--stacks-green);" id="reservationsCount">—</span>
+              <span style="color:#6b7280; font-size:.9rem;">books on waiting lists</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Quick actions</h3>
+        <div class="action-grid">
+          <a href="{% url 'admin:index' %}" class="action-btn">
+            <div style="font-size:1.5rem; margin-bottom:.5rem;">⚙️</div>
+            Manage system
+          </a>
+          <a href="{% url 'admin:accounts_user_changelist' %}" class="action-btn">
+            <div style="font-size:1.5rem; margin-bottom:.5rem;">👥</div>
+            Manage users
+          </a>
+          <a href="{% url 'admin:catalog_book_changelist' %}" class="action-btn">
+            <div style="font-size:1.5rem; margin-bottom:.5rem;">📚</div>
+            Manage books
+          </a>
+          <a href="{% url 'profile-page' %}" class="action-btn">
+            <div style="font-size:1.5rem; margin-bottom:.5rem;">👤</div>
+            My profile
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+function authFetch(url, options={}) {
+  return fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrftoken,
+      'X-Requested-With': 'XMLHttpRequest',
+      ...(options.headers || {})
+    }
+  }).then(r => r.json().then(body => ({ ok: r.ok, status: r.status, body })));
+}
+
+function loadStats() {
+  return authFetch('/api/accounts/admin-stats/').then(res => {
+    if (res.ok) {
+      const data = res.body;
+      document.getElementById('statTotalStudents').textContent = data.total_students;
+      document.getElementById('statTotalBooks').textContent = data.total_books;
+      document.getElementById('statActiveLoans').textContent = data.active_loans;
+      document.getElementById('statOverdue').textContent = data.overdue_loans;
+      document.getElementById('finesAmount').textContent = `Rs. ${data.outstanding_fines.toFixed(2)}`;
+      document.getElementById('reservationsCount').textContent = data.active_reservations;
+    }
+  });
+}
+
+loadStats();
+</script>
+</body>
+</html>

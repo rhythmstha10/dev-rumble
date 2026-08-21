@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'reservations',
     'ai_assistant',
+    'announcements',
 ]
 
 # --- Campus AI (Gemini) ---

@@ -32,6 +32,7 @@ urlpatterns = [
     path('circulation/', include('circulation_app.urls')),
     path('api/ai/', include('ai_assistant.urls')),
     path('reservations/', include('reservations.urls')),
+    path('api/announcements/', include('announcements.urls')),
 ]
 
 if settings.DEBUG:

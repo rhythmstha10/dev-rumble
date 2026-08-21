@@ -19,12 +19,39 @@ from .models import User
 from .forms import RegisterForm, LoginForm, ProfileForm, PasswordResetRequestForm, PasswordResetConfirmForm
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
+from django.db.models import Sum, Count
+from django.utils import timezone
 
 class LibrarianOnlyTestView(APIView):
     permission_classes = [IsLibrarianOrSuperAdmin]
 
     def get(self, request):
         return Response({"message": f"Hello {request.user.username}, you have access!"})
+
+
+class AdminStatsView(APIView):
+    permission_classes = [IsLibrarianOrSuperAdmin]
+
+    def get(self, request):
+        from circulation_app.models import Loan, Fine
+        from catalog.models import Book
+        from reservations.models import Reservation
+        
+        total_students = User.objects.filter(role='MEMBER').count()
+        total_books = Book.objects.count()
+        active_loans = Loan.objects.filter(status__in=['borrowed', 'overdue']).count()
+        overdue_loans = Loan.objects.filter(status='overdue').count()
+        outstanding_fines = Fine.objects.filter(is_paid=False).aggregate(total=Sum('amount'))['total'] or 0
+        active_reservations = Reservation.objects.count()
+        
+        return Response({
+            'total_students': total_students,
+            'total_books': total_books,
+            'active_loans': active_loans,
+            'overdue_loans': overdue_loans,
+            'outstanding_fines': float(outstanding_fines),
+            'active_reservations': active_reservations,
+        })
 
 
 
@@ -230,8 +257,104 @@ def dashboard_page(request):
     context = {'user': request.user}
 
     if role == 'SUPERADMIN':
+        context['active_nav'] = 'dashboard'
         return render(request, 'accounts/dashboard_superadmin.html', context)
     elif role == 'LIBRARIAN':
+        context['active_nav'] = 'dashboard'
         return render(request, 'accounts/dashboard_librarian.html', context)
     else:
+        from circulation_app.models import Loan, Fine
+        from django.db.models import Sum
+        from django.utils import timezone
+        from datetime import timedelta
+
+        now = timezone.now()
+        active_loans = Loan.objects.filter(
+            user=request.user, status__in=['borrowed', 'overdue']
+        ).select_related('book').order_by('due_date')
+        overdue_loans = active_loans.filter(due_date__lt=now)
+        due_soon_loans = active_loans.filter(due_date__gte=now, due_date__lte=now + timedelta(days=3))
+        total_fine = Fine.objects.filter(
+            loan__user=request.user, is_paid=False
+        ).aggregate(total=Sum('amount'))['total'] or 0
+
+        context.update({
+            'active_nav': 'dashboard',
+            'active_loans': active_loans,
+            'borrowed_count': active_loans.count(),
+            'due_soon_count': due_soon_loans.count(),
+            'overdue_count': overdue_loans.count(),
+            'total_fine': total_fine,
+            'now': now,
+        })
         return render(request, 'accounts/dashboard_member.html', context)
+
+
+@login_required(login_url='login-page')
+def my_books_page(request):
+    from circulation_app.models import Loan
+    from django.utils import timezone
+    
+    now = timezone.now()
+    active_loans = Loan.objects.filter(
+        user=request.user, status__in=['borrowed', 'overdue']
+    ).select_related('book').order_by('due_date')
+    history_loans = Loan.objects.filter(
+        user=request.user, status='returned'
+    ).select_related('book').order_by('-return_date')[:10]
+    
+    return render(request, 'accounts/my_books.html', {
+        'active_nav': 'my-books',
+        'active_loans': active_loans,
+        'history_loans': history_loans,
+        'now': now,
+    })
+
+
+@login_required(login_url='login-page')
+def reservations_page(request):
+    from reservations.models import Reservation
+    
+    reservations = Reservation.objects.filter(user=request.user).select_related('book').order_by('created_at')
+    
+    return render(request, 'accounts/reservations.html', {
+        'active_nav': 'reservations',
+        'reservations': reservations,
+    })
+
+
+@login_required(login_url='login-page')
+def campus_ai_page(request):
+    return render(request, 'accounts/campus_ai.html', {
+        'active_nav': 'campus-ai',
+    })
+
+
+@login_required(login_url='login-page')
+def study_planner_page(request):
+    return render(request, 'accounts/study_planner.html', {
+        'active_nav': 'study-planner',
+    })
+
+
+@login_required(login_url='login-page')
+def announcements_page(request):
+    return render(request, 'accounts/announcements.html', {
+        'active_nav': 'announcements',
+    })
+
+
+@login_required(login_url='login-page')
+def fines_page(request):
+    from circulation_app.models import Fine
+    
+    fines = Fine.objects.filter(loan__user=request.user).select_related('loan__book').order_by('-created_at')
+    total_outstanding = Fine.objects.filter(
+        loan__user=request.user, is_paid=False
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    
+    return render(request, 'accounts/fines.html', {
+        'active_nav': 'fines',
+        'fines': fines,
+        'total_outstanding': total_outstanding,
+    })

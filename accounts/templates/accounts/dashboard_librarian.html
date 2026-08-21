@@ -1,17 +1,421 @@
-{% extends "accounts/base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Librarian Dashboard — CampusHub AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  :root{
+    --ink-navy:#1C2541; --deep-navy:#0B132B; --parchment:#F7F5F0;
+    --brass:#B08D57; --stacks-green:#3E5C50; --ink-grey:#3A3F4B; --danger:#9B3B3B;
+  }
+  body{ background:var(--parchment); color:var(--ink-grey); font-family:'Inter',sans-serif; }
+  h1,h2,h3{ font-family:'Fraunces',serif; color:var(--deep-navy); }
+  .mono{ font-family:'IBM Plex Mono',monospace; }
+  .sidebar-inner{ padding:1.6rem 1.2rem; }
+  .sidebar-inner .brand{ font-family:'Fraunces',serif; color:var(--parchment); font-weight:700; font-size:1.25rem; margin-bottom:2.2rem; display:block; }
+  .sidebar-inner .brand span{ color:var(--brass); }
+  .sidebar-inner .nav-link{ color:#C9CEDB; font-weight:500; padding:.55rem .7rem; border-radius:5px; margin-bottom:.2rem; font-size:.92rem; cursor:pointer; }
+  .sidebar-inner .nav-link.active{ background:rgba(176,141,87,0.15); color:var(--brass); font-weight:600; }
+  .sidebar-inner .nav-link:hover{ color:var(--parchment); }
+  .sidebar-desktop{ background:var(--deep-navy); min-height:100vh; width:230px; flex-shrink:0; }
+  .offcanvas.sidebar-mobile{ background:var(--deep-navy); width:230px; }
+  .offcanvas.sidebar-mobile .btn-close{ filter:invert(1); }
+  .topbar{ background:#fff; border-bottom:1px solid rgba(28,37,65,0.08); padding:.9rem 1.2rem; display:flex; align-items:center; justify-content:space-between; }
+  .topbar .role-tag{ font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:.08em; color:var(--brass); border:1px solid var(--brass); border-radius:3px; padding:.1rem .5rem; text-transform:uppercase; }
+  .hamburger-btn{ border:1px solid rgba(28,37,65,0.15); background:#fff; border-radius:4px; padding:.35rem .55rem; }
+  .stat-card{ background:#fff; border:1px solid rgba(28,37,65,0.1); border-radius:6px; padding:1rem 1.2rem; }
+  .stat-card .num{ font-family:'Fraunces',serif; font-size:1.7rem; color:var(--deep-navy); }
+  .stat-card .label{ font-size:.78rem; color:#6b7280; text-transform:uppercase; letter-spacing:.05em; }
+  .panel{ background:#fff; border:1px solid rgba(28,37,65,0.08); border-radius:6px; padding:1.3rem; }
+  .panel h3{ font-size:1.05rem; margin-bottom:1rem; }
+  table.lib-table{ width:100%; font-size:.86rem; }
+  table.lib-table th{ text-align:left; color:#6b7280; font-weight:600; font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; padding:.5rem .4rem; border-bottom:1px solid rgba(28,37,65,0.1); }
+  table.lib-table td{ padding:.6rem .4rem; border-bottom:1px dashed rgba(28,37,65,0.1); vertical-align:middle; }
+  table.lib-table tr:last-child td{ border-bottom:none; }
+  .pill{ font-family:'IBM Plex Mono',monospace; font-size:.68rem; padding:.15rem .5rem; border-radius:3px; white-space:nowrap; }
+  .pill-ok{ background:rgba(62,92,80,0.12); color:var(--stacks-green); }
+  .pill-warn{ background:rgba(176,141,87,0.15); color:var(--brass); }
+  .pill-danger{ background:rgba(155,59,59,0.1); color:var(--danger); }
+  .btn-brass{ background:var(--brass); color:var(--deep-navy); font-weight:600; border:none; padding:.4rem .8rem; border-radius:4px; font-size:.82rem; }
+  .btn-brass:hover{ background:#c49f6b; color:var(--deep-navy); }
+  .btn-outline-navy{ background:transparent; border:1px solid var(--ink-navy); color:var(--ink-navy); font-weight:600; padding:.4rem .8rem; border-radius:4px; font-size:.82rem; }
+  .btn-outline-navy:hover{ background:var(--ink-navy); color:var(--parchment); }
+  .btn-outline-danger-sm{ background:transparent; border:1px solid var(--danger); color:var(--danger); font-weight:600; padding:.3rem .65rem; border-radius:4px; font-size:.78rem; }
+  .btn-outline-danger-sm:hover{ background:var(--danger); color:#fff; }
+  .tab-pane-section{ display:none; }
+  .tab-pane-section.active{ display:block; }
+  .search-input{ border:1px solid rgba(28,37,65,0.15); border-radius:4px; padding:.45rem .7rem; font-size:.85rem; }
+  @media (max-width: 767px){
+    table.lib-table thead{ display:none; }
+    table.lib-table tr{ display:block; border-bottom:1px solid rgba(28,37,65,0.12); padding:.6rem 0; }
+    table.lib-table td{ display:flex; justify-content:space-between; border-bottom:none; padding:.25rem 0; }
+    table.lib-table td::before{ content:attr(data-label); color:#6b7280; font-size:.75rem; font-weight:600; }
+  }
+</style>
+</head>
+<body>
+{% csrf_token %}
 
-{% block title %}Librarian Dashboard{% endblock %}
+<div class="offcanvas offcanvas-start sidebar-mobile" tabindex="-1" id="mobileNav">
+  <div class="sidebar-inner">
+    <a class="brand" href="{% url 'dashboard-page' %}">CampusHub <span>AI</span></a>
+    <nav class="nav flex-column">
+      <a class="nav-link active" data-tab="overview">Overview</a>
+      <a class="nav-link" data-tab="books">Books</a>
+      <a class="nav-link" data-tab="loans">Loans</a>
+      <a class="nav-link" data-tab="reservations">Reservations</a>
+      <a class="nav-link" data-tab="fines">Fines</a>
+      <a class="nav-link" data-tab="announcements">Announcements</a>
+      <a class="nav-link" href="{% url 'logout-page' %}">Log out</a>
+    </nav>
+  </div>
+</div>
 
-{% block content %}
-    <h2>Welcome, {{ user.username }}</h2>
-    <p class="subtitle">Librarian Dashboard</p>
+<div class="d-flex">
+  <div class="sidebar-desktop d-none d-lg-block">
+    <div class="sidebar-inner">
+      <a class="brand" href="{% url 'dashboard-page' %}">CampusHub <span>AI</span></a>
+      <nav class="nav flex-column" id="deskNav">
+        <a class="nav-link active" data-tab="overview">Overview</a>
+        <a class="nav-link" data-tab="books">Books</a>
+        <a class="nav-link" data-tab="loans">Loans</a>
+        <a class="nav-link" data-tab="reservations">Reservations</a>
+        <a class="nav-link" data-tab="fines">Fines</a>
+        <a class="nav-link" data-tab="announcements">Announcements</a>
+        <a class="nav-link" href="{% url 'logout-page' %}">Log out</a>
+      </nav>
+    </div>
+  </div>
 
-    <p style="font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 14px; color: #6B5D4D; margin-bottom: 24px;">
-        Manage the book catalog, track borrowed books, and assist members.
-    </p>
+  <div class="flex-grow-1" style="min-width:0;">
+    <div class="topbar">
+      <div class="d-flex align-items-center gap-2">
+        <button class="hamburger-btn d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNav">☰</button>
+        <span class="fw-semibold" id="pageHeading" style="color:var(--deep-navy)">Overview</span>
+      </div>
+      <span class="role-tag">{{ user.role }}</span>
+    </div>
 
-    <a href="{% url 'profile-page' %}"><button>My Profile</button></a>
-    <a href="{% url 'book-list-page' %}"><button>Browse Books</button></a>
+    <div class="container-fluid p-3 p-lg-4">
 
-    <p class="footer-link"><a href="{% url 'logout-page' %}">Log out</a></p>
-{% endblock %}
+      <div class="tab-pane-section active" id="pane-overview">
+        <div class="row g-3 mb-4">
+          <div class="col-6 col-lg-3"><div class="stat-card"><div class="num" id="statTotalBooks">—</div><div class="label">Total books</div></div></div>
+          <div class="col-6 col-lg-3"><div class="stat-card"><div class="num" id="statActiveLoans">—</div><div class="label">Active loans</div></div></div>
+          <div class="col-6 col-lg-3"><div class="stat-card"><div class="num" id="statOverdue">—</div><div class="label">Overdue</div></div></div>
+          <div class="col-6 col-lg-3"><div class="stat-card"><div class="num" id="statReservations">—</div><div class="label">Reservations</div></div></div>
+        </div>
+        <div class="panel">
+          <h3>Needs attention</h3>
+          <div id="attentionList"><p class="small text-muted mb-0">Loading...</p></div>
+        </div>
+      </div>
+
+      <div class="tab-pane-section" id="pane-books">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <input class="search-input" id="bookSearch" placeholder="Search by title or author">
+          <button class="btn-brass" onclick="alert('Adding books needs ISBN, category, and published date — use the Catalog admin page for now. A proper Add Book form here is a follow-up.')">+ Add book</button>
+        </div>
+        <div class="panel">
+          <table class="lib-table" id="booksTable">
+            <thead><tr><th>Title</th><th>Author</th><th>Copies</th><th>Status</th></tr></thead>
+            <tbody><tr><td colspan="4" class="text-muted small">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="tab-pane-section" id="pane-loans">
+        <div class="panel">
+          <h3>Active loans and overdue</h3>
+          <table class="lib-table" id="loansTable">
+            <thead><tr><th>Book</th><th>Borrower</th><th>Due date</th><th>Status</th><th></th></tr></thead>
+            <tbody><tr><td colspan="5" class="text-muted small">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="tab-pane-section" id="pane-reservations">
+        <div class="panel">
+          <h3>Reservation queue</h3>
+          <table class="lib-table" id="reservationsTable">
+            <thead><tr><th>Book</th><th>Student</th><th>Position</th><th></th></tr></thead>
+            <tbody><tr><td colspan="4" class="text-muted small">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="tab-pane-section" id="pane-fines">
+        <div class="panel">
+          <h3>Outstanding fines</h3>
+          <table class="lib-table" id="finesTable">
+            <thead><tr><th>Student</th><th>Book</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+            <tbody><tr><td colspan="5" class="text-muted small">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="tab-pane-section" id="pane-announcements">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <span></span>
+          <button class="btn-brass" onclick="openAnnModal()">+ New announcement</button>
+        </div>
+        <div class="panel">
+          <div id="annList"><p class="small text-muted">Loading...</p></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="annModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:8px; padding:2rem; width:90%; max-width:400px; box-shadow:0 10px 40px rgba(0,0,0,0.15);">
+    <h2 style="font-family:'Fraunces',serif; color:var(--deep-navy); margin-bottom:1.5rem;">New announcement</h2>
+    <input id="annTitleInput" placeholder="Title" style="display:block; width:100%; border:1px solid rgba(28,37,65,0.15); border-radius:4px; padding:.6rem .8rem; margin-bottom:1rem; font-size:.9rem;">
+    <textarea id="annBodyInput" placeholder="Message" rows="5" style="display:block; width:100%; border:1px solid rgba(28,37,65,0.15); border-radius:4px; padding:.6rem .8rem; margin-bottom:1.5rem; font-size:.9rem; font-family:inherit;"></textarea>
+    <div style="display:flex; gap:1rem; justify-content:flex-end;">
+      <button class="btn-outline-navy" onclick="closeAnnModal()" style="cursor:pointer;">Cancel</button>
+      <button class="btn-brass" onclick="saveAnnouncement()" style="cursor:pointer;">Post</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+function authFetch(url, options={}) {
+  return fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrftoken,
+      'X-Requested-With': 'XMLHttpRequest',
+      ...(options.headers || {})
+    }
+  }).then(r => r.json().then(body => ({ ok: r.ok, status: r.status, body })));
+}
+
+const tabs = document.querySelectorAll('[data-tab]');
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    const name = tab.dataset.tab;
+    document.querySelectorAll('.tab-pane-section').forEach(p => p.classList.remove('active'));
+    document.getElementById('pane-' + name).classList.add('active');
+    document.querySelectorAll('[data-tab]').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll(`[data-tab="${name}"]`).forEach(t => t.classList.add('active'));
+    document.getElementById('pageHeading').textContent = tab.textContent;
+    const offcanvasEl = document.getElementById('mobileNav');
+    const inst = bootstrap.Offcanvas.getInstance(offcanvasEl);
+    if (inst) inst.hide();
+  });
+});
+
+let booksCache = [];
+
+function loadBooks() {
+  return fetch('/api/books/').then(r => r.json()).then(data => {
+    booksCache = data.results || data;
+    renderBooks();
+    renderOverview();
+  });
+}
+
+function renderBooks(filter='') {
+  const tbody = document.querySelector('#booksTable tbody');
+  const f = filter.toLowerCase();
+  const rows = booksCache.filter(b =>
+    b.title.toLowerCase().includes(f) || (b.author_name || '').toLowerCase().includes(f)
+  );
+  if (rows.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" class="text-muted small">No books found.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(b => `
+    <tr>
+      <td data-label="Title">${b.title}</td>
+      <td data-label="Author">${b.author_name}</td>
+      <td data-label="Copies">${b.available_copies} of ${b.total_copies}</td>
+      <td data-label="Status"><span class="pill ${b.available_copies > 0 ? 'pill-ok' : 'pill-danger'}">${b.available_copies > 0 ? 'AVAILABLE' : 'OUT'}</span></td>
+    </tr>`).join('');
+}
+document.getElementById('bookSearch').addEventListener('input', e => renderBooks(e.target.value));
+
+let loansCache = [];
+
+function loadLoans() {
+  return Promise.all([
+    fetch('/circulation/loans/?status=borrowed').then(r => r.json()),
+    fetch('/circulation/loans/?status=overdue').then(r => r.json()),
+  ]).then(([borrowed, overdue]) => {
+    loansCache = [...(borrowed.results || borrowed), ...(overdue.results || overdue)];
+    renderLoans();
+    renderOverview();
+  });
+}
+
+function renderLoans() {
+  const tbody = document.querySelector('#loansTable tbody');
+  if (loansCache.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="text-muted small">No active loans.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = loansCache.map(l => `
+    <tr>
+      <td data-label="Book">${l.book_title || l.book}</td>
+      <td data-label="Borrower">${l.user_username || l.user}</td>
+      <td data-label="Due date">${new Date(l.due_date).toLocaleDateString(undefined,{month:'short',day:'numeric'})}</td>
+      <td data-label="Status"><span class="pill ${l.status === 'overdue' ? 'pill-danger' : 'pill-ok'}">${l.status.toUpperCase()}</span></td>
+      <td data-label=""><button class="btn-outline-navy" style="padding:.25rem .6rem;font-size:.75rem;" onclick="markReturned(${l.id})">Mark returned</button></td>
+    </tr>`).join('');
+}
+
+function markReturned(loanId) {
+  authFetch('/circulation/return/', { method: 'POST', body: JSON.stringify({ loan_id: loanId }) })
+    .then(res => {
+      if (res.ok) { loadLoans(); loadBooks(); }
+      else alert(res.body.error || 'Could not mark as returned.');
+    });
+}
+
+let reservationsCache = [];
+
+function loadReservations() {
+  return fetch('/reservations/all/').then(r => r.json()).then(data => {
+    reservationsCache = data.reservations || [];
+    renderReservations();
+    renderOverview();
+  });
+}
+
+function renderReservations() {
+  const tbody = document.querySelector('#reservationsTable tbody');
+  if (reservationsCache.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" class="text-muted small">No active reservations.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = reservationsCache.map(r => `
+    <tr>
+      <td data-label="Book">${r.book}</td>
+      <td data-label="Student">${r.user}</td>
+      <td data-label="Position">${r.position}</td>
+      <td data-label=""><button class="btn-outline-danger-sm" onclick="cancelReservation(${r.id})">Cancel</button></td>
+    </tr>`).join('');
+}
+
+function cancelReservation(id) {
+  authFetch(`/reservations/${id}/cancel/`, { method: 'POST' })
+    .then(res => {
+      if (res.ok) loadReservations();
+      else alert(res.body.error || 'Could not cancel.');
+    });
+}
+
+let finesCache = [];
+
+function loadFines() {
+  return fetch('/circulation/fines/?is_paid=false').then(r => r.json()).then(data => {
+    finesCache = data.results || data;
+    renderFines();
+  });
+}
+
+function renderFines() {
+  const tbody = document.querySelector('#finesTable tbody');
+  if (finesCache.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="text-muted small">No outstanding fines.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = finesCache.map(f => `
+    <tr>
+      <td data-label="Student">${f.loan_user || f.loan}</td>
+      <td data-label="Book">${f.loan_book || ''}</td>
+      <td data-label="Amount">Rs. ${f.amount}</td>
+      <td data-label="Status"><span class="pill pill-warn">UNPAID</span></td>
+      <td data-label=""><button class="btn-outline-navy" style="padding:.25rem .6rem;font-size:.75rem;" onclick="markPaid(${f.id})">Mark paid</button></td>
+    </tr>`).join('');
+}
+
+function markPaid(fineId) {
+  authFetch('/circulation/mark-fine-paid/', { method: 'POST', body: JSON.stringify({ fine_id: fineId }) })
+    .then(res => {
+      if (res.ok) loadFines();
+      else alert(res.body.error || 'Could not mark as paid.');
+    });
+}
+
+function openAnnModal(){
+  document.getElementById('annTitleInput').value = '';
+  document.getElementById('annBodyInput').value = '';
+  document.getElementById('annModal').style.display = 'flex';
+}
+function closeAnnModal(){ document.getElementById('annModal').style.display = 'none'; }
+
+function loadAnnouncements() {
+  return fetch('/api/announcements/').then(r => r.json()).then(data => {
+    const list = data.results || data;
+    const container = document.getElementById('annList');
+    if (list.length === 0) {
+      container.innerHTML = `<p class="small text-muted">No announcements yet.</p>`;
+      return;
+    }
+    container.innerHTML = list.map(a => `
+      <div class="panel mb-3">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <h3 style="font-size:.98rem;">${a.title}</h3>
+            <p class="small mb-1">${a.body}</p>
+            <span class="mono small text-muted">${new Date(a.created_at).toLocaleDateString(undefined,{month:'short',day:'numeric'})} — ${a.created_by_username}</span>
+          </div>
+          <button class="btn-outline-danger-sm" onclick="deleteAnnouncement(${a.id})">Delete</button>
+        </div>
+      </div>`).join('');
+  });
+}
+
+function saveAnnouncement(){
+  const title = document.getElementById('annTitleInput').value.trim();
+  const body = document.getElementById('annBodyInput').value.trim();
+  if(!title || !body) return;
+
+  authFetch('/api/announcements/', { method: 'POST', body: JSON.stringify({ title, body }) })
+    .then(res => {
+      if (res.ok) { closeAnnModal(); loadAnnouncements(); }
+      else alert('Could not post announcement.');
+    });
+}
+
+function deleteAnnouncement(id){
+  authFetch(`/api/announcements/${id}/`, { method: 'DELETE' })
+    .then(res => loadAnnouncements());
+}
+
+function renderOverview() {
+  document.getElementById('statTotalBooks').textContent = booksCache.reduce((s,b) => s + b.total_copies, 0);
+  document.getElementById('statActiveLoans').textContent = loansCache.length;
+  document.getElementById('statOverdue').textContent = loansCache.filter(l => l.status === 'overdue').length;
+  document.getElementById('statReservations').textContent = reservationsCache.length;
+
+  const attn = document.getElementById('attentionList');
+  const overdue = loansCache.filter(l => l.status === 'overdue');
+  const outOfStock = booksCache.filter(b => b.available_copies === 0);
+  if (overdue.length === 0 && outOfStock.length === 0) {
+    attn.innerHTML = `<p class="small text-muted mb-0">Nothing urgent right now.</p>`;
+    return;
+  }
+  attn.innerHTML = [
+    ...overdue.map(l => `<div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px dashed rgba(28,37,65,0.1);"><span class="small">${l.book_title || l.book} — overdue from ${l.user_username || l.user}</span><span class="pill pill-danger">OVERDUE</span></div>`),
+    ...outOfStock.map(b => `<div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px dashed rgba(28,37,65,0.1);"><span class="small">${b.title} — all copies checked out</span><span class="pill pill-warn">OUT OF STOCK</span></div>`)
+  ].join('');
+}
+
+loadBooks();
+loadLoans();
+loadReservations();
+loadFines();
+loadAnnouncements();
+</script>
+</body>
+</html>
