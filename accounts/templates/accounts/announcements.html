@@ -1,0 +1,4 @@
+{% extends "accounts/app_base.html" %}
+{% block title %}Announcements - CampusHub AI{% endblock %}
+{% block content %}<div class="mb-4"><p class="mono text-muted mb-1" style="font-size:.72rem;">CAMPUS NOTICEBOARD</p><h1>Announcements</h1></div><div id="announcementList" class="row g-3"><div class="col-12 text-muted">Loading...</div></div>{% endblock %}
+{% block extra_scripts %}<script>fetch('/api/announcements/').then(r=>r.json()).then(data=>{const items=data.results||data;document.getElementById('announcementList').innerHTML=items.length?items.map(item=>`<div class="col-12 col-lg-6"><article class="panel"><p class="mono text-muted" style="font-size:.68rem;">${new Date(item.created_at).toLocaleDateString()}</p><h2 style="font-size:1.2rem;">${item.title}</h2><p class="mb-0">${item.body}</p></article></div>`).join(''):'<div class="col-12"><div class="panel text-muted">No announcements yet.</div></div>';});</script>{% endblock %}

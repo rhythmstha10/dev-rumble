@@ -42,7 +42,9 @@ class AdminStatsView(APIView):
         active_loans = Loan.objects.filter(status__in=['borrowed', 'overdue']).count()
         overdue_loans = Loan.objects.filter(status='overdue').count()
         outstanding_fines = Fine.objects.filter(is_paid=False).aggregate(total=Sum('amount'))['total'] or 0
-        active_reservations = Reservation.objects.count()
+        active_reservations = Reservation.objects.filter(
+            status__in=Reservation.ACTIVE_STATUSES
+        ).count()
         
         return Response({
             'total_students': total_students,

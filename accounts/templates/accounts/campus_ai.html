@@ -1,0 +1,14 @@
+{% extends "accounts/app_base.html" %}
+{% block title %}Campus AI - CampusHub AI{% endblock %}
+{% block content %}
+<div class="mb-4"><p class="mono text-muted mb-1" style="font-size:.72rem;">STUDY ASSISTANT</p><h1>Campus AI</h1><p class="text-muted">Ask about your loans, the catalog, or your study routine.</p></div>
+<div class="row g-4"><div class="col-lg-7"><div class="ai-panel"><h3>Ask Campus AI</h3><div id="chatLog" class="mb-3"><div class="ai-bubble">Hello. I can help you find books, understand your loans, or plan your study time.</div></div><form id="chatForm" class="d-flex gap-2"><input id="chatMessage" class="ai-input flex-grow-1" required maxlength="2000" placeholder="Ask a question..."><button class="btn btn-brass" type="submit">Send</button></form></div></div><div class="col-lg-5"><div class="panel"><h3>Recommendations</h3><button class="btn btn-outline-dark btn-sm mb-3" type="button" onclick="loadRecommendations()">Refresh recommendations</button><div id="recommendations" class="small text-muted">Loading...</div></div></div></div>
+{% endblock %}
+{% block extra_scripts %}<script>
+const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+function postJson(url, data) { return fetch(url, {method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':csrftoken,'X-Requested-With':'XMLHttpRequest'}, body:JSON.stringify(data)}).then(r => r.json().then(body => ({ok:r.ok, body}))); }
+function addBubble(text, user=false) { const bubble=document.createElement('div'); bubble.className='ai-bubble'; bubble.textContent=text; if(user) bubble.style.borderColor='rgba(247,245,240,.18)'; document.getElementById('chatLog').appendChild(bubble); bubble.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+document.getElementById('chatForm').addEventListener('submit', event => { event.preventDefault(); const input=document.getElementById('chatMessage'); const message=input.value.trim(); if(!message) return; addBubble(message,true); input.value=''; postJson('/api/ai/chat/',{message}).then(res => addBubble(res.ok ? (res.body.message || res.body.reply || JSON.stringify(res.body)) : (res.body.detail || 'Campus AI could not answer that.'))); });
+function loadRecommendations() { const target=document.getElementById('recommendations'); target.textContent='Loading...'; postJson('/api/ai/recommend/',{limit:5}).then(res => { if(!res.ok) { target.textContent='Recommendations are unavailable right now.'; return; } const items=res.body.recommendations || []; target.innerHTML=`<p>${res.body.summary || ''}</p>` + (items.length ? items.map(item => `<div class="border-top py-2"><strong>${item.title}</strong><br><span class="text-muted">${item.author} - ${item.reason}</span></div>`).join('') : '<p>No recommendations yet.</p>'); }); }
+loadRecommendations();
+</script>{% endblock %}

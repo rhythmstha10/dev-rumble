@@ -117,7 +117,7 @@
       <div class="tab-pane-section" id="pane-books">
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
           <input class="search-input" id="bookSearch" placeholder="Search by title or author">
-          <button class="btn-brass" onclick="alert('Adding books needs ISBN, category, and published date — use the Catalog admin page for now. A proper Add Book form here is a follow-up.')">+ Add book</button>
+          <button class="btn-brass" onclick="openBookModal()">+ Add book</button>
         </div>
         <div class="panel">
           <table class="lib-table" id="booksTable">
@@ -169,6 +169,23 @@
 
     </div>
   </div>
+</div>
+
+<div id="bookModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+  <form id="bookForm" style="background:#fff; border-radius:8px; padding:2rem; width:90%; max-width:560px; max-height:90vh; overflow:auto;">
+    <h2 style="font-family:'Fraunces',serif; color:var(--deep-navy); margin-bottom:1.5rem;">Add a book</h2>
+    <div class="row g-3">
+      <div class="col-12"><label class="form-label" for="bookTitleInput">Title</label><input id="bookTitleInput" class="form-control" required></div>
+      <div class="col-md-6"><label class="form-label" for="bookIsbnInput">ISBN</label><input id="bookIsbnInput" class="form-control" maxlength="13" required></div>
+      <div class="col-md-6"><label class="form-label" for="bookDateInput">Published date</label><input id="bookDateInput" class="form-control" type="date" required></div>
+      <div class="col-md-6"><label class="form-label" for="bookAuthorInput">Author</label><select id="bookAuthorInput" class="form-select" required><option value="">Loading authors...</option></select></div>
+      <div class="col-md-6"><label class="form-label" for="bookCategoryInput">Category</label><select id="bookCategoryInput" class="form-select" required><option value="">Loading categories...</option></select></div>
+      <div class="col-md-6"><label class="form-label" for="bookTotalInput">Total copies</label><input id="bookTotalInput" class="form-control" type="number" min="1" value="1" required></div>
+      <div class="col-12"><label class="form-label" for="bookDescriptionInput">Description</label><textarea id="bookDescriptionInput" class="form-control" rows="3"></textarea></div>
+    </div>
+    <div id="bookFormMessage" class="small mt-3" role="status"></div>
+    <div class="d-flex justify-content-end gap-2 mt-4"><button class="btn-outline-navy" type="button" onclick="closeBookModal()">Cancel</button><button class="btn-brass" type="submit">Create book</button></div>
+  </form>
 </div>
 
 <div id="annModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
@@ -345,6 +362,40 @@ function markPaid(fineId) {
       else alert(res.body.error || 'Could not mark as paid.');
     });
 }
+
+function openBookModal(){
+  document.getElementById('bookForm').reset();
+  document.getElementById('bookFormMessage').textContent = '';
+  document.getElementById('bookModal').style.display = 'flex';
+  Promise.all([
+    fetch('/api/authors/').then(r => r.json()),
+    fetch('/api/categories/').then(r => r.json())
+  ]).then(([authors, categories]) => {
+    const authorItems = authors.results || authors;
+    const categoryItems = categories.results || categories;
+    document.getElementById('bookAuthorInput').innerHTML = authorItems.map(item => `<option value="${item.id}">${item.name}</option>`).join('');
+    document.getElementById('bookCategoryInput').innerHTML = categoryItems.map(item => `<option value="${item.id}">${item.name}</option>`).join('');
+  });
+}
+function closeBookModal(){ document.getElementById('bookModal').style.display = 'none'; }
+document.getElementById('bookForm').addEventListener('submit', event => {
+  event.preventDefault();
+  const totalCopies = Number(document.getElementById('bookTotalInput').value);
+  const message = document.getElementById('bookFormMessage');
+  authFetch('/api/books/', { method:'POST', body:JSON.stringify({
+    title: document.getElementById('bookTitleInput').value.trim(),
+    isbn: document.getElementById('bookIsbnInput').value.trim(),
+    author: Number(document.getElementById('bookAuthorInput').value),
+    category: Number(document.getElementById('bookCategoryInput').value),
+    published_date: document.getElementById('bookDateInput').value,
+    total_copies: totalCopies,
+    available_copies: totalCopies,
+    description: document.getElementById('bookDescriptionInput').value.trim()
+  }) }).then(res => {
+    if (res.ok) { closeBookModal(); loadBooks(); }
+    else { message.textContent = res.body.detail || 'Could not create this book.'; message.style.color = 'var(--danger)'; }
+  });
+});
 
 function openAnnModal(){
   document.getElementById('annTitleInput').value = '';

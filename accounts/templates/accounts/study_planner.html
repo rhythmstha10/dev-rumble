@@ -1,0 +1,10 @@
+{% extends "accounts/app_base.html" %}
+{% block title %}Study Planner - CampusHub AI{% endblock %}
+{% block content %}
+<div class="mb-4"><p class="mono text-muted mb-1" style="font-size:.72rem;">ACADEMIC PLANNER</p><h1>Study Planner</h1><p class="text-muted">Build a practical day-by-day plan for your next exam.</p></div>
+<div class="row g-4"><div class="col-lg-5"><div class="panel"><form id="planForm"><label class="form-label" for="subject">Subject</label><input class="form-control mb-3" id="subject" required maxlength="255"><label class="form-label" for="days">Days until exam</label><input class="form-control mb-3" id="days" type="number" min="1" max="30" value="7" required><label class="form-label" for="hours">Hours per day</label><input class="form-control mb-4" id="hours" type="number" min=".5" max="16" step=".5" value="2" required><button class="btn btn-brass w-100" type="submit">Create study plan</button></form></div></div><div class="col-lg-7"><div class="panel"><h2 style="font-size:1.2rem;">Your plan</h2><pre id="planOutput" class="small text-wrap mb-0" style="white-space:pre-wrap;">Enter your exam details to generate a plan.</pre></div></div></div>
+{% endblock %}
+{% block extra_scripts %}<script>
+const csrftoken=document.querySelector('[name=csrfmiddlewaretoken]').value;
+document.getElementById('planForm').addEventListener('submit', event => { event.preventDefault(); const output=document.getElementById('planOutput'); output.textContent='Creating your plan...'; fetch('/api/ai/study-plan/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrftoken,'X-Requested-With':'XMLHttpRequest'},body:JSON.stringify({subject:document.getElementById('subject').value,days_until_exam:Number(document.getElementById('days').value),hours_per_day:Number(document.getElementById('hours').value)})}).then(r=>r.json()).then(body=>{output.textContent=body.plan || body.detail || 'Unable to create a plan.';}); });
+</script>{% endblock %}

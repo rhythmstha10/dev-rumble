@@ -66,6 +66,7 @@
 {% block extra_head %}{% endblock %}
 </head>
 <body>
+{% csrf_token %}
 
 <div class="offcanvas offcanvas-start sidebar-mobile" tabindex="-1" id="mobileNav">
   <div class="sidebar-inner">

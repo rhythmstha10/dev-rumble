@@ -145,7 +145,7 @@ function authFetch(url, options={}) {
 }
 
 function loadStats() {
-  return authFetch('/api/accounts/admin-stats/').then(res => {
+  return authFetch('/api/admin-stats/').then(res => {
     if (res.ok) {
       const data = res.body;
       document.getElementById('statTotalStudents').textContent = data.total_students;

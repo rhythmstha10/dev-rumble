@@ -57,7 +57,11 @@
     <div class="col-lg-4">
       <div class="ai-panel">
         <h3>Campus AI</h3>
-        <p style="font-size:.85rem; opacity:.85;">Coming soon — will connect to /api/ai/chat/ once wired up.</p>
+        <div id="dashboardAiReply" class="ai-bubble" style="font-size:.82rem;">Ask me about your books, due dates, or study plans.</div>
+        <form id="dashboardAiForm" class="d-flex gap-2">
+          <input id="dashboardAiMessage" class="ai-input flex-grow-1" required placeholder="Ask Campus AI...">
+          <button class="btn btn-brass" type="submit">Ask</button>
+        </form>
       </div>
     </div>
   </div>
@@ -66,7 +70,7 @@
     <div class="col-lg-8">
       <div class="panel">
         <h3>Recommended for you</h3>
-        <p class="text-muted" style="font-size:.85rem;">Coming soon — will call /api/ai/recommend/.</p>
+        <div id="memberRecommendations"><p class="text-muted" style="font-size:.85rem;">Loading...</p></div>
       </div>
     </div>
     <div class="col-lg-4">
@@ -89,6 +93,28 @@
         <div class="date">${new Date(a.created_at).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}).toUpperCase()}</div>
         ${a.title}
       </div>`).join('');
+  });
+
+  const dashboardCsrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  function dashboardAiPost(url, data) {
+    return fetch(url, { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':dashboardCsrftoken,'X-Requested-With':'XMLHttpRequest'}, body:JSON.stringify(data) })
+      .then(r => r.json().then(body => ({ok:r.ok, body})));
+  }
+  document.getElementById('dashboardAiForm').addEventListener('submit', event => {
+    event.preventDefault();
+    const input = document.getElementById('dashboardAiMessage');
+    const reply = document.getElementById('dashboardAiReply');
+    reply.textContent = 'Thinking...';
+    dashboardAiPost('/api/ai/chat/', {message: input.value}).then(result => {
+      reply.textContent = result.ok ? (result.body.reply || result.body.message || 'No response.') : 'Campus AI is unavailable right now.';
+      input.value = '';
+    });
+  });
+  dashboardAiPost('/api/ai/recommend/', {limit: 3}).then(result => {
+    const container = document.getElementById('memberRecommendations');
+    if (!result.ok) { container.innerHTML = '<p class="text-muted" style="font-size:.85rem;">Recommendations are unavailable right now.</p>'; return; }
+    const items = result.body.recommendations || [];
+    container.innerHTML = `<p class="text-muted" style="font-size:.85rem;">${result.body.summary || ''}</p>` + (items.length ? items.map(item => `<div class="book-row"><span>${item.title}<small class="d-block text-muted">${item.author}</small></span><span class="small text-muted">${item.category}</span></div>`).join('') : '<p class="text-muted" style="font-size:.85rem;">Browse the catalog to discover your next book.</p>');
   });
   </script>
 {% endblock %}

@@ -1,0 +1,6 @@
+{% extends "accounts/app_base.html" %}
+{% block title %}Fines - CampusHub AI{% endblock %}
+{% block content %}
+<div class="mb-4"><p class="mono text-muted mb-1" style="font-size:.72rem;">ACCOUNT</p><h1>Fines</h1><p class="text-muted">Outstanding balance: <strong>Rs. {{ total_outstanding }}</strong></p></div>
+<div class="panel"><div class="table-responsive"><table class="table align-middle mb-0"><thead><tr><th>Book</th><th>Amount</th><th>Issued</th><th>Status</th></tr></thead><tbody>{% for fine in fines %}<tr><td>{{ fine.loan.book.title }}</td><td>Rs. {{ fine.amount }}</td><td>{{ fine.created_at|date:"M d, Y" }}</td><td>{% if fine.is_paid %}<span class="text-success">Paid</span>{% else %}<span class="text-danger">Outstanding</span>{% endif %}</td></tr>{% empty %}<tr><td colspan="4" class="text-center text-muted py-4">No fines on your account.</td></tr>{% endfor %}</tbody></table></div></div>
+{% endblock %}

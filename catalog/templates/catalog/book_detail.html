@@ -1,25 +1,24 @@
-{% extends "accounts/base.html" %}
+{% extends "accounts/app_base.html" %}
 
 {% block title %}{{ book.title }}{% endblock %}
 
 {% block content %}
-    <h2>{{ book.title }}</h2>
-    <p class="subtitle">by {{ book.author.name }}</p>
+<div class="d-flex justify-content-between align-items-center mb-4 gap-3 flex-wrap">
+  <div><p class="mono text-muted mb-1" style="font-size:.72rem;">BOOK DETAIL</p><h1 class="mb-1">{{ book.title }}</h1><p class="text-muted mb-0">by {{ book.author.name }}</p></div>
+  <a class="btn btn-outline-secondary" href="{% url 'book-list-page' %}">Back to library</a>
+</div>
+<div class="row g-4">
+  <div class="col-lg-8"><div class="panel"><h3>About this book</h3><p class="mb-4">{{ book.description|default:"No description has been added yet." }}</p><div class="row g-3 small"><div class="col-sm-4"><span class="text-muted d-block">Category</span>{{ book.category.name }}</div><div class="col-sm-4"><span class="text-muted d-block">ISBN</span>{{ book.isbn }}</div><div class="col-sm-4"><span class="text-muted d-block">Published</span>{{ book.published_date|date:"M d, Y" }}</div></div></div></div>
+  <div class="col-lg-4"><div class="panel"><h3>Availability</h3><p class="mb-3">{{ book.available_copies }} of {{ book.total_copies }} copies available.</p>{% if book.available_copies %}<button class="btn btn-brass w-100" type="button" onclick="borrowBook()">Borrow this book</button>{% else %}<button class="btn btn-outline-secondary w-100" type="button" onclick="reserveBook()">Join reservation queue</button>{% endif %}<div id="bookMessage" class="small mt-3" role="status"></div></div></div>
+</div>
+{% endblock %}
 
-    <p style="font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 14px; color: #6B5D4D; margin-bottom: 16px;">
-        {{ book.description }}
-    </p>
-
-    <p><strong>Category:</strong> {{ book.category.name }}</p>
-    <p><strong>ISBN:</strong> {{ book.isbn }}</p>
-    <p><strong>Published:</strong> {{ book.published_date }}</p>
-    <p><strong>Copies:</strong>
-        {% if book.available_copies == 0 %}
-            <span style="background-color: #B00020; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">Unavailable</span>
-        {% else %}
-            {{ book.available_copies }} of {{ book.total_copies }} available
-        {% endif %}
-    </p>
-
-    <p class="footer-link" style="margin-top: 24px;"><a href="{% url 'book-list-page' %}">← Back to Book List</a></p>
+{% block extra_scripts %}
+<script>
+const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+function authFetch(url, options={}) { return fetch(url, {...options, headers: {'Content-Type':'application/json', 'X-CSRFToken':csrftoken, 'X-Requested-With':'XMLHttpRequest', ...(options.headers || {})}}).then(r => r.json().then(body => ({ok:r.ok, body}))); }
+function showMessage(text, error=false) { const message = document.getElementById('bookMessage'); message.textContent = text; message.style.color = error ? 'var(--danger)' : 'var(--stacks-green)'; }
+function borrowBook() { authFetch('/circulation/borrow/', {method:'POST', body:JSON.stringify({book_id:{{ book.id }}})}).then(res => res.ok ? showMessage('Book borrowed successfully.') : showMessage(res.body.error || 'Unable to borrow this book.', true)); }
+function reserveBook() { authFetch('/reservations/books/{{ book.id }}/reserve/', {method:'POST', body:JSON.stringify({})}).then(res => res.ok ? showMessage('You joined the reservation queue.') : showMessage(res.body.error || 'Unable to reserve this book.', true)); }
+</script>
 {% endblock %}

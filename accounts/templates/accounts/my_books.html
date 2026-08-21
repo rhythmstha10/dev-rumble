@@ -14,14 +14,14 @@
       <div style="display:flex; justify-content:space-between; align-items:start; gap:1rem;">
         <div style="flex:1;">
           <h3 style="margin:0 0 .3rem 0; font-size:1.05rem;">{{ loan.book.title }}</h3>
-          <p style="margin:0; color:#6b7280; font-size:.9rem;">{{ loan.book.author_name }}</p>
+          <p style="margin:0; color:#6b7280; font-size:.9rem;">{{ loan.book.author.name }}</p>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:.8rem; font-size:.85rem;">
             <div><span style="color:#8b93a3;">Borrowed:</span> {{ loan.borrow_date|date:"M d, Y" }}</div>
             <div><span style="color:#8b93a3;">Due:</span> {{ loan.due_date|date:"M d, Y" }}</div>
           </div>
         </div>
         <div style="display:flex; gap:.5rem;">
-          <button class="btn-outline-navy" style="padding:.4rem .8rem; font-size:.82rem;">Renew</button>
+          <button class="btn-outline-navy" onclick="renewLoan({{ loan.id }})" style="padding:.4rem .8rem; font-size:.82rem;">Renew</button>
           <button class="btn-brass" onclick="returnLoan({{ loan.id }})" style="padding:.4rem .8rem; font-size:.82rem;">Return</button>
         </div>
       </div>
@@ -41,7 +41,7 @@
     {% for loan in history_loans %}
     <div style="background:#fff; border:1px solid rgba(28,37,65,0.1); border-radius:6px; padding:1.2rem; margin-bottom:1rem;">
       <h3 style="margin:0 0 .3rem 0; font-size:1.05rem;">{{ loan.book.title }}</h3>
-      <p style="margin:0; color:#6b7280; font-size:.9rem;">{{ loan.book.author_name }}</p>
+      <p style="margin:0; color:#6b7280; font-size:.9rem;">{{ loan.book.author.name }}</p>
       <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem; margin-top:.8rem; font-size:.85rem;">
         <div><span style="color:#8b93a3;">Borrowed:</span> {{ loan.borrow_date|date:"M d, Y" }}</div>
         <div><span style="color:#8b93a3;">Returned:</span> {{ loan.return_date|date:"M d, Y" }}</div>
@@ -73,6 +73,14 @@ function returnLoan(loanId) {
     .then(res => {
       if (res.ok) { location.reload(); }
       else alert(res.body.error || 'Could not return book.');
+    });
+}
+
+function renewLoan(loanId) {
+  authFetch('/circulation/renew/', { method: 'POST', body: JSON.stringify({ loan_id: loanId }) })
+    .then(res => {
+      if (res.ok) { location.reload(); }
+      else alert(res.body.error || 'Could not renew book.');
     });
 }
 </script>
