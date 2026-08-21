@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RegisterView, LoginView, ProfileView, LibrarianOnlyTestView, PasswordResetRequestView, PasswordResetConfirmView, register_page, login_page, profile_page, logout_page, password_reset_request_page, password_reset_confirm_page, dashboard_page, AdminStatsView, my_books_page, reservations_page, campus_ai_page, study_planner_page, announcements_page, fines_page
+from .views import RegisterView, LoginView, ProfileView, LibrarianOnlyTestView, PasswordResetRequestView, PasswordResetConfirmView, register_page, login_page, profile_page, logout_page, password_reset_request_page, password_reset_confirm_page, dashboard_page, AdminStatsView, DashboardActivityView, my_books_page, reservations_page, campus_ai_page, study_planner_page, announcements_page, fines_page
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
@@ -7,6 +7,7 @@ urlpatterns = [
     path('profile/', ProfileView.as_view(), name='profile'),
     path('test-librarian/', LibrarianOnlyTestView.as_view(), name='test-librarian'),
     path('admin-stats/', AdminStatsView.as_view(), name='admin-stats'),
+    path('dashboard-activity/', DashboardActivityView.as_view(), name='dashboard-activity'),
     path('password-reset/', PasswordResetRequestView.as_view(), name='password-reset'),
     path('password-reset-confirm/', PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
     path('register-page/', register_page, name='register-page'),

@@ -50,7 +50,7 @@
     <div class="col-lg-4">
       <div class="panel">
         <h3>Borrowing activity</h3>
-        <p class="text-muted" style="font-size:.8rem;">Coming soon — needs a real per-month borrow count endpoint.</p>
+        <div style="height:220px;"><canvas id="memberActivityChart" aria-label="Borrowing activity over the last six months"></canvas></div>
       </div>
     </div>
 
@@ -115,6 +115,13 @@
     if (!result.ok) { container.innerHTML = '<p class="text-muted" style="font-size:.85rem;">Recommendations are unavailable right now.</p>'; return; }
     const items = result.body.recommendations || [];
     container.innerHTML = `<p class="text-muted" style="font-size:.85rem;">${result.body.summary || ''}</p>` + (items.length ? items.map(item => `<div class="book-row"><span>${item.title}<small class="d-block text-muted">${item.author}</small></span><span class="small text-muted">${item.category}</span></div>`).join('') : '<p class="text-muted" style="font-size:.85rem;">Browse the catalog to discover your next book.</p>');
+  });
+  fetch('/api/dashboard-activity/').then(r => r.json()).then(data => {
+    new Chart(document.getElementById('memberActivityChart'), {
+      type: 'bar',
+      data: { labels: data.labels, datasets: [{ label: 'Books borrowed', data: data.borrowed, backgroundColor: '#B08D57', borderRadius: 3 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+    });
   });
   </script>
 {% endblock %}

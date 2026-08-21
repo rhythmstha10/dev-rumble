@@ -20,6 +20,7 @@ from .forms import RegisterForm, LoginForm, ProfileForm, PasswordResetRequestFor
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.db.models import Sum, Count
+from django.db.models.functions import TruncMonth
 from django.utils import timezone
 
 class LibrarianOnlyTestView(APIView):
@@ -53,6 +54,35 @@ class AdminStatsView(APIView):
             'overdue_loans': overdue_loans,
             'outstanding_fines': float(outstanding_fines),
             'active_reservations': active_reservations,
+        })
+
+
+class DashboardActivityView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        from circulation_app.models import Loan
+
+        today = timezone.localdate()
+        first_month = today.replace(day=1)
+        month_starts = []
+        for offset in range(5, -1, -1):
+            month = first_month.month - offset
+            year = first_month.year + (month - 1) // 12
+            month_starts.append(first_month.replace(year=year, month=(month - 1) % 12 + 1))
+
+        start_date = month_starts[0]
+        loans = Loan.objects.filter(borrow_date__date__gte=start_date)
+        if request.user.role not in ['LIBRARIAN', 'SUPERADMIN']:
+            loans = loans.filter(user=request.user)
+
+        counts = {
+            item['month'].strftime('%Y-%m'): item['count']
+            for item in loans.annotate(month=TruncMonth('borrow_date')).values('month').annotate(count=Count('id'))
+        }
+        return Response({
+            'labels': [month.strftime('%b %Y') for month in month_starts],
+            'borrowed': [counts.get(month.strftime('%Y-%m'), 0) for month in month_starts],
         })
 
 
