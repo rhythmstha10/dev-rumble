@@ -10,10 +10,10 @@ from ai_assistant.services.recommend_engine import recommend_books
 
 def _detect_intent(message: str) -> str:
     text = message.lower()
-    if any(kw in text for kw in ["what book", "my book", "currently have", "which book"]):
-        return "my_books"
     if "due" in text or "when is" in text:
         return "due_date"
+    if any(kw in text for kw in ["what book", "my book", "currently have", "which book"]):
+        return "my_books"
     if "renew" in text:
         return "renew"
     if "fine" in text or "owe" in text:
@@ -59,6 +59,22 @@ def _match_loan_by_title(message: str, loans: list[dict]) -> dict | None:
         title_words = [w for w in loan["book_title"].lower().split() if len(w) > 3]
         if any(w in text for w in title_words):
             return loan
+    return None
+
+
+def _infer_follow_up_intent(message: str, context: dict) -> str | None:
+    """Reuse the previous user intent for short, ambiguous follow-ups."""
+    words = re.findall(r"[a-z0-9']+", message.lower())
+    if len(words) > 10 or not context["recent_messages"]:
+        return None
+    previous_users = [
+        item for item in context["recent_messages"]
+        if item["role"] == "user" and item.get("intent")
+    ]
+    if not previous_users:
+        return None
+    if any(word in words for word in ("that", "those", "other", "it", "also", "more")):
+        return previous_users[-1]["intent"]
     return None
 
 
@@ -136,6 +152,7 @@ def _build_prompt(message: str, context: dict) -> str:
         f"Student's recent loan history: {context['loan_history']}\n"
         f"Student's fines: {context['fines']}\n"
         f"Sample of available catalog books: {context['available_books']}\n\n"
+        f"Recent conversation: {context['recent_messages']}\n\n"
         f"Student's question: {message}"
     )
 
@@ -157,6 +174,8 @@ def handle_chat_message(user, message: str) -> dict:
         return {"reply": result["plan"], "intent": intent, "used_ai": result["used_ai"]}
 
     context = context_builder.build_chat_context(user)
+    if intent == "general":
+        intent = _infer_follow_up_intent(message, context) or intent
 
     if intent == "browse_catalog":
         subject = _extract_subject(message)

@@ -76,6 +76,22 @@ class ContextBuilderTests(TestCase):
         self.assertIn("Database System Concepts", titles)
         self.assertNotIn("Out Of Stock Book", titles)
 
+    def test_available_books_matches_subject_in_title(self):
+        python_book = Book.objects.create(
+            title="Python Data Analysis",
+            isbn="4444444444444",
+            author=self.author,
+            category=Category.objects.create(name="Programming"),
+            published_date=timezone.now().date(),
+            total_copies=1,
+            available_copies=1,
+        )
+        titles = [
+            book["title"]
+            for book in context_builder.get_available_books(category_name="Python")
+        ]
+        self.assertIn(python_book.title, titles)
+
 
 @override_settings(GEMINI_API_KEY="")
 class ChatEngineFallbackTests(TestCase):
@@ -117,6 +133,12 @@ class ChatEngineFallbackTests(TestCase):
         result = chat_engine.handle_chat_message(self.user, "asdkjaslkdjalksjd")
         self.assertEqual(result["intent"], "general")
         self.assertTrue(len(result["reply"]) > 0)
+
+    def test_short_follow_up_reuses_previous_intent(self):
+        first = chat_engine.handle_chat_message(self.user, "When is my book due?")
+        follow_up = chat_engine.handle_chat_message(self.user, "What about the other one?")
+        self.assertEqual(first["intent"], "due_date")
+        self.assertEqual(follow_up["intent"], "due_date")
 
 
 @override_settings(GEMINI_API_KEY="")

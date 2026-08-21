@@ -9,9 +9,11 @@ database, and nothing here is ever passed to the LLM except plain data
 from decimal import Decimal
 
 from django.utils import timezone
+from django.db.models import Q
 
 from catalog.models import Book
 from circulation_app.models import Loan, Fine
+from ai_assistant.models import ChatMessage
 
 
 def _loan_to_dict(loan: Loan) -> dict:
@@ -75,7 +77,12 @@ def get_available_books(category_name: str | None = None, limit: int = 15) -> li
     grounding recommendations in books that actually exist and are in stock."""
     qs = Book.objects.select_related("author", "category").filter(available_copies__gt=0)
     if category_name:
-        qs = qs.filter(category__name__icontains=category_name)
+        qs = qs.filter(
+            Q(category__name__icontains=category_name)
+            | Q(title__icontains=category_name)
+            | Q(author__name__icontains=category_name)
+            | Q(description__icontains=category_name)
+        )
     qs = qs.order_by("-available_copies")[:limit]
     return [
         {
@@ -86,6 +93,15 @@ def get_available_books(category_name: str | None = None, limit: int = 15) -> li
             "available_copies": b.available_copies,
         }
         for b in qs
+    ]
+
+
+def get_recent_chat_messages(user, limit: int = 6) -> list[dict]:
+    """Return a short, user-scoped conversation window for follow-up questions."""
+    messages = ChatMessage.objects.filter(user=user).order_by("-created_at")[:limit]
+    return [
+        {"role": message.role, "content": message.content, "intent": message.intent}
+        for message in reversed(messages)
     ]
 
 
@@ -121,4 +137,5 @@ def build_chat_context(user) -> dict:
         "loan_history": history,
         "fines": get_fines(user),
         "available_books": available_books[:15],
+        "recent_messages": get_recent_chat_messages(user),
     }

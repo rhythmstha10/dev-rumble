@@ -13,12 +13,24 @@ def _pick_candidates(context: dict, subject: str | None, limit: int) -> list[dic
 
     pool = context["available_books"]
     if subject:
-        subject_matches = context_builder.get_available_books(category_name=subject, limit=limit * 3)
+        subject_matches = context_builder.get_available_books(category_name=subject, limit=limit * 5)
         if subject_matches:
             pool = subject_matches
 
+    history = context["current_loans"] + context["loan_history"]
+    preferred_categories = {loan["category"] for loan in history}
+    preferred_authors = {loan["author"] for loan in history}
+
+    def score(book):
+        return (
+            (3 if subject and subject.lower() in f"{book['title']} {book['author']} {book['category']}".lower() else 0)
+            + (2 if book["category"] in preferred_categories else 0)
+            + (1 if book["author"] in preferred_authors else 0)
+            + min(book["available_copies"], 3) / 10
+        )
+
     candidates = [b for b in pool if b["book_id"] not in borrowed_ids]
-    return candidates[:limit]
+    return sorted(candidates, key=score, reverse=True)[:limit]
 
 
 def _reason_for(book: dict, context: dict, subject: str | None) -> str:
