@@ -13,7 +13,7 @@ import requests
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
-
+REQUEST_TIMEOUT_SECONDS = 30
 GEMINI_URL_TEMPLATE = (
     "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 )
@@ -34,7 +34,7 @@ def generate(prompt: str, system_instruction: str | None = None) -> str:
     if not is_configured():
         raise GeminiUnavailableError("GEMINI_API_KEY is not set")
 
-    model = getattr(settings, "GEMINI_MODEL", "gemini-1.5-flash")
+    model = getattr(settings, "GEMINI_MODEL", "gemini-3.6-flash")
     url = GEMINI_URL_TEMPLATE.format(model=model)
 
     payload = {"contents": [{"parts": [{"text": prompt}]}]}
@@ -48,16 +48,30 @@ def generate(prompt: str, system_instruction: str | None = None) -> str:
             json=payload,
             timeout=REQUEST_TIMEOUT_SECONDS,
         )
+
+        if not response.ok:
+            logger.warning(
+                "Gemini API error %s: %s",
+                response.status_code,
+                response.text,
+            )
+
         response.raise_for_status()
+
         data = response.json()
         candidates = data.get("candidates") or []
+
         if not candidates:
             raise GeminiUnavailableError("Gemini returned no candidates")
+
         parts = candidates[0].get("content", {}).get("parts", [])
         text = "".join(p.get("text", "") for p in parts).strip()
+
         if not text:
             raise GeminiUnavailableError("Gemini returned an empty response")
+
         return text
+
     except (requests.RequestException, ValueError, KeyError, IndexError) as exc:
         logger.warning("Gemini call failed, falling back: %s", exc)
         raise GeminiUnavailableError(str(exc)) from exc
