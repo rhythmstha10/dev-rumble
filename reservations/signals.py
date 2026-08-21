@@ -26,15 +26,13 @@ from . import services
 logger = logging.getLogger(__name__)
 
 try:
-    from loans.models import Loan
-except ImportError:  # loans app not installed yet, e.g. isolated unit tests
+    from circulation_app.models import Loan
+except ImportError:  # circulation_app not installed yet, e.g. isolated unit tests
     Loan = None
 
-
 def _loan_is_returned(loan) -> bool:
-    if hasattr(loan, "status") and hasattr(loan.__class__, "STATUS_RETURNED"):
-        return loan.status == loan.__class__.STATUS_RETURNED
-    return bool(getattr(loan, "returned_date", None))
+    # circulation_app.Loan uses status choices: 'borrowed', 'returned', 'overdue'
+    return getattr(loan, "status", None) == "returned"
 
 
 if Loan is not None:
@@ -68,4 +66,4 @@ if Loan is not None:
             )
             services.process_book_return(instance.book)
 else:
-    logger.warning("loans app not found - reservation queue will not auto-advance on returns")
+    logger.warning("circulation_app not found - reservation queue will not auto-advance on returns")

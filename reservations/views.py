@@ -10,7 +10,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 
-from books.models import Book  # catalog app - read-only lookup only
+from catalog.models import Book
 from . import services
 from .models import Reservation
 

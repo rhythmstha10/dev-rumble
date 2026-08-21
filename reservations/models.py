@@ -41,7 +41,7 @@ class Reservation(models.Model):
     # perspective except for the availability adjustments made through
     # services.BookGateway (see services.py).
     book = models.ForeignKey(
-        "books.Book",
+        "catalog.Book",
         on_delete=models.CASCADE,
         related_name="reservations",
     )

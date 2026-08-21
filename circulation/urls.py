@@ -31,6 +31,7 @@ urlpatterns = [
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('circulation/', include('circulation_app.urls')),
     path('api/ai/', include('ai_assistant.urls')),
+    path('reservations/', include('reservations.urls')),
 ]
 
 if settings.DEBUG:

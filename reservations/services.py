@@ -83,13 +83,11 @@ class LoanGateway:
 
     @staticmethod
     def get_loans_due_between(start, end):
-        from loans.models import Loan  # local import: no hard startup dependency
+        from circulation_app.models import Loan  # local import: no hard startup dependency
 
         qs = Loan.objects.filter(due_date__gte=start, due_date__lte=end)
-        if hasattr(Loan, "STATUS_ACTIVE"):
-            qs = qs.filter(status=Loan.STATUS_ACTIVE)
-        elif hasattr(Loan, "returned_date"):
-            qs = qs.filter(returned_date__isnull=True)
+        # circulation_app.Loan uses status choices: 'borrowed', 'returned', 'overdue'
+        qs = qs.exclude(status='returned')
         return qs.select_related("user", "book")
 
 
