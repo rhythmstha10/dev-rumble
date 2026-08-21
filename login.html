@@ -317,6 +317,8 @@
     const selectedRole = document.querySelector('input[name="loginRole"]:checked').value;
     const role = selectedRole; // stand-in for data.user.role above
 
+    localStorage.setItem('campusHubRole', role);
+    localStorage.setItem('campusHubUser', email.split('@')[0]);
     const destination = ROLE_REDIRECTS[role] || 'dashboard.html';
     window.location.href = destination;
   });

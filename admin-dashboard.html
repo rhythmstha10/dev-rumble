@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard | CampusHub AI</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink-navy:#1C2541;
+    --deep-navy:#0B132B;
+    --parchment:#F7F5F0;
+    --brass:#B08D57;
+    --stacks-green:#3E5C50;
+    --ink-grey:#3A3F4B;
+    --danger:#9B3B3B;
+  }
+
+  body{ background:var(--parchment); color:var(--ink-grey); font-family:'Inter',sans-serif; }
+  h1,h2,h3,h4,.brand-font{ font-family:'Fraunces',serif; }
+  .mono{ font-family:'IBM Plex Mono',monospace; }
+
+  .sidebar-desktop{
+    width:260px; min-height:100vh; background:var(--deep-navy); color:var(--parchment);
+    position:sticky; top:0; padding:1.5rem 1rem;
+  }
+  .sidebar-desktop .brand{ font-family:'Fraunces',serif; font-size:1.3rem; font-weight:700; color:var(--parchment); margin-bottom:2rem; display:block; }
+  .sidebar-desktop .brand span{ color:var(--brass); }
+  .sidebar-link{
+    display:flex; align-items:center; gap:.65rem; color:rgba(247,245,240,.7);
+    padding:.65rem .85rem; border-radius:.5rem; text-decoration:none; font-size:.92rem;
+    margin-bottom:.25rem; transition:background .15s ease,color .15s ease;
+  }
+  .sidebar-link:hover{ background:rgba(247,245,240,.08); color:var(--parchment); }
+  .sidebar-link.active{ background:var(--brass); color:var(--deep-navy); font-weight:600; }
+  .sidebar-role-tag{ margin-top:auto; border:1px dashed rgba(247,245,240,.3); border-radius:.5rem; padding:.75rem; font-size:.75rem; }
+  .sidebar-role-tag .role-mono{ font-family:'IBM Plex Mono',monospace; color:var(--brass); letter-spacing:.03em; }
+
+  .topbar{ background:var(--ink-navy); color:var(--parchment); padding:.85rem 1.25rem; }
+  .topbar .btn-toggle{ background:transparent; border:1px solid rgba(247,245,240,.3); color:var(--parchment); }
+
+  .stamp-card{ background:var(--parchment); border:1px solid rgba(28,37,65,.15); border-radius:.6rem; padding:1.1rem 1.2rem; position:relative; height:100%; }
+  .stamp-card [data-tag]{
+    position:absolute; top:.6rem; right:.6rem; font-family:'IBM Plex Mono',monospace; font-size:.65rem;
+    letter-spacing:.05em; border:1px solid var(--ink-navy); border-radius:.3rem; padding:.1rem .4rem; color:var(--ink-navy);
+  }
+  .stamp-card .stamp-value{ font-family:'Fraunces',serif; font-size:2rem; font-weight:700; color:var(--ink-navy); margin:.35rem 0 0; }
+  .stamp-card .stamp-label{ font-family:'IBM Plex Mono',monospace; font-size:.72rem; color:var(--ink-grey); text-transform:uppercase; letter-spacing:.04em; }
+  .stamp-card.brass [data-tag]{ border-color:var(--brass); color:var(--brass); }
+  .stamp-card.green [data-tag]{ border-color:var(--stacks-green); color:var(--stacks-green); }
+  .stamp-card.danger [data-tag]{ border-color:var(--danger); color:var(--danger); }
+  .stamp-row{ border-top:1px dashed rgba(28,37,65,.2); padding-top:.5rem; margin-top:.5rem; font-family:'IBM Plex Mono',monospace; font-size:.72rem; color:var(--ink-grey); }
+
+  .panel{ background:#fff; border:1px solid rgba(28,37,65,.1); border-radius:.7rem; padding:1.5rem; margin-bottom:1.75rem; }
+  .panel-title{ font-family:'Fraunces',serif; font-weight:600; font-size:1.15rem; color:var(--ink-navy); margin-bottom:.25rem; }
+  .panel-sub{ font-size:.85rem; color:var(--ink-grey); opacity:.75; margin-bottom:1.1rem; }
+
+  .btn-brass{ background:var(--brass); border-color:var(--brass); color:#fff; }
+  .btn-brass:hover{ background:#96703f; border-color:#96703f; color:#fff; }
+  .btn-outline-navy{ border-color:var(--ink-navy); color:var(--ink-navy); }
+  .btn-outline-navy:hover{ background:var(--ink-navy); color:#fff; }
+
+  .badge-status{ font-family:'IBM Plex Mono',monospace; font-size:.7rem; padding:.3rem .55rem; border-radius:.3rem; }
+  .badge-active{ background:rgba(62,92,80,.12); color:var(--stacks-green); }
+  .badge-suspended{ background:rgba(155,59,59,.12); color:var(--danger); }
+  .badge-lowstock{ background:rgba(176,141,87,.12); color:var(--brass); }
+
+  .search-bar{ max-width:280px; }
+  .search-bar .input-group-text{ background:var(--parchment); border-color:rgba(28,37,65,.2); color:var(--ink-navy); }
+  .search-bar .form-control{ border-color:rgba(28,37,65,.2); }
+  .search-bar .form-control:focus{ border-color:var(--brass); box-shadow:0 0 0 .15rem rgba(176,141,87,.15); }
+
+  .admin-table thead{ background:var(--ink-navy); color:var(--parchment); font-family:'IBM Plex Mono',monospace; font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; }
+  .admin-table td{ vertical-align:middle; font-size:.9rem; }
+
+  @media (max-width: 768px){
+    .admin-table thead{ display:none; }
+    .admin-table, .admin-table tbody, .admin-table tr, .admin-table td{ display:block; width:100%; }
+    .admin-table tr{ border:1px solid rgba(28,37,65,.15); border-radius:.5rem; margin-bottom:.85rem; padding:.5rem .75rem; background:var(--parchment); }
+    .admin-table td{ border:none; padding:.35rem 0; display:flex; justify-content:space-between; align-items:center; gap:.5rem; }
+    .admin-table td::before{
+      content:attr(data-label); font-family:'IBM Plex Mono',monospace; font-size:.68rem;
+      text-transform:uppercase; color:var(--ink-grey); opacity:.7;
+    }
+  }
+
+  .modal-header{ background:var(--ink-navy); color:var(--parchment); }
+  .modal-title{ font-family:'Fraunces',serif; }
+  .btn-close-white-custom{ filter:invert(1) grayscale(100%) brightness(200%); }
+</style>
+</head>
+<body>
+
+<div class="d-flex">
+
+  <nav class="sidebar-desktop d-none d-lg-flex flex-column">
+    <a href="admin-dashboard.html" class="brand">CampusHub<span>AI</span></a>
+    <a href="admin-dashboard.html" class="sidebar-link active"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+    <a href="#manage-students" class="sidebar-link"><i class="bi bi-people"></i> Students</a>
+    <a href="#manage-librarians" class="sidebar-link"><i class="bi bi-person-badge"></i> Librarians</a>
+    <a href="#manage-books" class="sidebar-link"><i class="bi bi-journal-bookmark"></i> Books</a>
+    <a href="#announcements-admin" class="sidebar-link"><i class="bi bi-megaphone"></i> Announcements</a>
+    <a href="#reports" class="sidebar-link"><i class="bi bi-bar-chart"></i> Reports</a>
+    <div class="sidebar-role-tag mono">Signed in as<br><span class="role-mono">ADMIN · SUPERADMIN</span></div>
+    <a href="login.html" class="sidebar-link mt-2"><i class="bi bi-box-arrow-right"></i> Log out</a>
+  </nav>
+
+  <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarOffcanvas" style="background:var(--deep-navy); color:var(--parchment); width:260px;">
+    <div class="offcanvas-header">
+      <span class="brand">CampusHub<span>AI</span></span>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column">
+      <a href="admin-dashboard.html" class="sidebar-link active"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+      <a href="#manage-students" class="sidebar-link" data-bs-dismiss="offcanvas"><i class="bi bi-people"></i> Students</a>
+      <a href="#manage-librarians" class="sidebar-link" data-bs-dismiss="offcanvas"><i class="bi bi-person-badge"></i> Librarians</a>
+      <a href="#manage-books" class="sidebar-link" data-bs-dismiss="offcanvas"><i class="bi bi-journal-bookmark"></i> Books</a>
+      <a href="#announcements-admin" class="sidebar-link" data-bs-dismiss="offcanvas"><i class="bi bi-megaphone"></i> Announcements</a>
+      <a href="#reports" class="sidebar-link" data-bs-dismiss="offcanvas"><i class="bi bi-bar-chart"></i> Reports</a>
+      <a href="login.html" class="sidebar-link mt-auto"><i class="bi bi-box-arrow-right"></i> Log out</a>
+    </div>
+  </div>
+
+  <div class="flex-grow-1" style="min-width:0;">
+
+    <header class="topbar d-flex align-items-center justify-content-between d-lg-none">
+      <button class="btn btn-toggle btn-sm" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas"><i class="bi bi-list"></i></button>
+      <span class="brand-font fw-semibold">CampusHub<span style="color:var(--brass)">AI</span></span>
+      <span></span>
+    </header>
+
+    <div class="container-fluid p-3 p-lg-4">
+
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+          <h1 class="h3 mb-0">Admin Dashboard</h1>
+          <p class="mono mb-0" style="font-size:.8rem; opacity:.7;">campus-wide overview</p>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+          <div class="stamp-card">
+            <span data-tag>USERS</span>
+            <p class="stamp-value" id="statStudents">0</p>
+            <p class="stamp-label mb-0">Total Students</p>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stamp-card">
+            <span data-tag>STAFF</span>
+            <p class="stamp-value" id="statLibrarians">0</p>
+            <p class="stamp-label mb-0">Librarians</p>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stamp-card green">
+            <span data-tag>LIBRARY</span>
+            <p class="stamp-value" id="statBooks">0</p>
+            <p class="stamp-label mb-0">Books Catalogued</p>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stamp-card brass">
+            <span data-tag>FINE</span>
+            <p class="stamp-value" id="statFines">$1,046</p>
+            <p class="stamp-label mb-0">Fines Outstanding</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" id="reports">
+        <h2 class="panel-title">Borrowing Activity — Campus Wide</h2>
+        <p class="panel-sub">Loans issued per month across all departments</p>
+        <canvas id="adminActivityChart" height="90"></canvas>
+      </div>
+
+      <!-- ===== Manage Students ===== -->
+      <div class="panel" id="manage-students">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-1 gap-2">
+          <h2 class="panel-title mb-0">Manage Students</h2>
+          <button class="btn btn-brass btn-sm mono" data-bs-toggle="modal" data-bs-target="#addStudentModal"><i class="bi bi-plus-lg me-1"></i> ADD STUDENT</button>
+        </div>
+        <p class="panel-sub">Backend role: <span class="mono">Member</span></p>
+        <div class="input-group input-group-sm search-bar mb-3">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" class="form-control" id="studentSearch" placeholder="Search students...">
+        </div>
+        <div class="table-responsive">
+          <table class="table admin-table align-middle">
+            <thead><tr><th>Name</th><th>Email</th><th>Books Borrowed</th><th>Fines</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="studentsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== Manage Librarians ===== -->
+      <div class="panel" id="manage-librarians">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-1 gap-2">
+          <h2 class="panel-title mb-0">Manage Librarians</h2>
+          <button class="btn btn-brass btn-sm mono" data-bs-toggle="modal" data-bs-target="#addLibrarianModal"><i class="bi bi-plus-lg me-1"></i> ADD LIBRARIAN</button>
+        </div>
+        <p class="panel-sub">Backend role: <span class="mono">Librarian</span></p>
+        <div class="input-group input-group-sm search-bar mb-3">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" class="form-control" id="librarianSearch" placeholder="Search librarians...">
+        </div>
+        <div class="table-responsive">
+          <table class="table admin-table align-middle">
+            <thead><tr><th>Name</th><th>Email</th><th>Department</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="librariansTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== Manage Books ===== -->
+      <div class="panel" id="manage-books">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-1 gap-2">
+          <h2 class="panel-title mb-0">Manage Books</h2>
+          <button class="btn btn-brass btn-sm mono" data-bs-toggle="modal" data-bs-target="#addBookModal"><i class="bi bi-plus-lg me-1"></i> ADD BOOK</button>
+        </div>
+        <p class="panel-sub">Full catalogue, low-stock titles flagged</p>
+        <div class="input-group input-group-sm search-bar mb-3">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" class="form-control" id="bookSearch" placeholder="Search books...">
+        </div>
+        <div class="table-responsive">
+          <table class="table admin-table align-middle">
+            <thead><tr><th>Title</th><th>Author</th><th>Copies</th><th>Available</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="booksTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== Announcements ===== -->
+      <div class="panel" id="announcements-admin">
+        <h2 class="panel-title">Announcements</h2>
+        <p class="panel-sub">Categories: Library / Events / Exams — visible on student <span class="mono">announcements.html</span></p>
+        <form class="row g-2 mb-3" id="announcementForm">
+          <div class="col-12 col-md-3">
+            <select class="form-select form-select-sm" id="annCategory">
+              <option>Library</option><option>Events</option><option>Exams</option>
+            </select>
+          </div>
+          <div class="col-12 col-md-7">
+            <input type="text" class="form-control form-control-sm" id="annTitle" placeholder="Announcement title" required>
+          </div>
+          <div class="col-12 col-md-2">
+            <button type="submit" class="btn btn-brass btn-sm w-100 mono">POST</button>
+          </div>
+        </form>
+        <ul class="list-group" id="announcementList"></ul>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== Add Student Modal ===== -->
+<div class="modal fade" id="addStudentModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="addStudentForm">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Student</h5>
+          <button type="button" class="btn-close btn-close-white-custom" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-2"><label class="form-label">Full name</label><input type="text" class="form-control" id="newStudentName" required></div>
+          <div class="mb-2"><label class="form-label">Email</label><input type="email" class="form-control" id="newStudentEmail" required></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-navy btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-brass btn-sm mono">SAVE</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Add Librarian Modal ===== -->
+<div class="modal fade" id="addLibrarianModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="addLibrarianForm">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Librarian</h5>
+          <button type="button" class="btn-close btn-close-white-custom" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-2"><label class="form-label">Full name</label><input type="text" class="form-control" id="newLibrarianName" required></div>
+          <div class="mb-2"><label class="form-label">Email</label><input type="email" class="form-control" id="newLibrarianEmail" required></div>
+          <div class="mb-2"><label class="form-label">Department</label><input type="text" class="form-control" id="newLibrarianDept" required></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-navy btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-brass btn-sm mono">SAVE</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Add Book Modal ===== -->
+<div class="modal fade" id="addBookModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="addBookForm">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Book</h5>
+          <button type="button" class="btn-close btn-close-white-custom" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-2"><label class="form-label">Title</label><input type="text" class="form-control" id="newBookTitle" required></div>
+          <div class="mb-2"><label class="form-label">Author</label><input type="text" class="form-control" id="newBookAuthor" required></div>
+          <div class="mb-2"><label class="form-label">Total Copies</label><input type="number" min="1" class="form-control" id="newBookCopies" required></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-navy btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-brass btn-sm mono">SAVE</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+  // ================= MOCK DATA (swap for real API calls at bottom) =================
+  let MOCK_STUDENTS = [
+    { name:"Aarav Sharma", email:"aarav.s@campus.edu", borrowed:3, fines:0,    status:"active" },
+    { name:"Nisha Rai",    email:"nisha.r@campus.edu", borrowed:1, fines:5.50, status:"active" },
+    { name:"Prakash Thapa",email:"prakash.t@campus.edu",borrowed:5, fines:12.00,status:"suspended" },
+    { name:"Sita Gurung",  email:"sita.g@campus.edu",  borrowed:0, fines:0,    status:"active" },
+  ];
+
+  let MOCK_LIBRARIANS = [
+    { name:"Meera Joshi",  email:"meera.j@campus.edu", dept:"Circulation Desk", status:"active" },
+    { name:"Rohan Basnet", email:"rohan.b@campus.edu", dept:"Periodicals",      status:"active" },
+    { name:"Alina Karki",  email:"alina.k@campus.edu", dept:"Reference",        status:"suspended" },
+  ];
+
+  let MOCK_BOOKS_ADMIN = [
+    { title:"Data Structures & Algorithms", author:"M. Weiss",     copies:6, available:0, status:"lowstock" },
+    { title:"Introduction to Sociology",    author:"J. Macionis",  copies:4, available:1, status:"lowstock" },
+    { title:"Modern Operating Systems",     author:"A. Tanenbaum", copies:10,available:6, status:"active" },
+  ];
+
+  let MOCK_ANNOUNCEMENTS = [
+    { category:"Library", title:"Extended hours during finals week" },
+    { category:"Exams",   title:"Mid-term schedule released" },
+  ];
+
+  const statusBadge = s => s === "active"
+    ? `<span class="badge-status badge-active">ACTIVE</span>`
+    : s === "lowstock"
+      ? `<span class="badge-status badge-lowstock">LOW STOCK</span>`
+      : `<span class="badge-status badge-suspended">SUSPENDED</span>`;
+
+  function updateStats(){
+    document.getElementById('statStudents').textContent = MOCK_STUDENTS.length;
+    document.getElementById('statLibrarians').textContent = MOCK_LIBRARIANS.length;
+    document.getElementById('statBooks').textContent = MOCK_BOOKS_ADMIN.reduce((sum,b)=>sum+b.copies,0);
+  }
+
+  function renderStudents(filter=""){
+    const body = document.getElementById('studentsTableBody');
+    const rows = MOCK_STUDENTS.filter(s => s.name.toLowerCase().includes(filter.toLowerCase()) || s.email.toLowerCase().includes(filter.toLowerCase()));
+    body.innerHTML = rows.map((s,i) => `
+      <tr>
+        <td data-label="Name">${s.name}</td>
+        <td data-label="Email" class="mono">${s.email}</td>
+        <td data-label="Books Borrowed">${s.borrowed}</td>
+        <td data-label="Fines" class="mono">$${s.fines.toFixed(2)}</td>
+        <td data-label="Status">${statusBadge(s.status)}</td>
+        <td data-label="Actions">
+          <button class="btn btn-sm btn-outline-navy" onclick="toggleStudentStatus('${s.email}')">
+            ${s.status === "active" ? "Suspend" : "Activate"}
+          </button>
+        </td>
+      </tr>`).join('') || `<tr><td colspan="6" class="text-center text-muted py-3">No students found</td></tr>`;
+  }
+
+  function renderLibrarians(filter=""){
+    const body = document.getElementById('librariansTableBody');
+    const rows = MOCK_LIBRARIANS.filter(l => l.name.toLowerCase().includes(filter.toLowerCase()) || l.email.toLowerCase().includes(filter.toLowerCase()));
+    body.innerHTML = rows.map(l => `
+      <tr>
+        <td data-label="Name">${l.name}</td>
+        <td data-label="Email" class="mono">${l.email}</td>
+        <td data-label="Department">${l.dept}</td>
+        <td data-label="Status">${statusBadge(l.status)}</td>
+        <td data-label="Actions">
+          <button class="btn btn-sm btn-outline-navy" onclick="toggleLibrarianStatus('${l.email}')">
+            ${l.status === "active" ? "Suspend" : "Activate"}
+          </button>
+        </td>
+      </tr>`).join('') || `<tr><td colspan="5" class="text-center text-muted py-3">No librarians found</td></tr>`;
+  }
+
+  function renderBooksAdmin(filter=""){
+    const body = document.getElementById('booksTableBody');
+    const rows = MOCK_BOOKS_ADMIN.filter(b => b.title.toLowerCase().includes(filter.toLowerCase()) || b.author.toLowerCase().includes(filter.toLowerCase()));
+    body.innerHTML = rows.map(b => `
+      <tr>
+        <td data-label="Title">${b.title}</td>
+        <td data-label="Author">${b.author}</td>
+        <td data-label="Copies">${b.copies}</td>
+        <td data-label="Available">${b.available}</td>
+        <td data-label="Status">${statusBadge(b.status)}</td>
+        <td data-label="Actions">
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteBook('${b.title}')"><i class="bi bi-trash"></i></button>
+        </td>
+      </tr>`).join('') || `<tr><td colspan="6" class="text-center text-muted py-3">No books found</td></tr>`;
+  }
+
+  function renderAnnouncements(){
+    const list = document.getElementById('announcementList');
+    list.innerHTML = MOCK_ANNOUNCEMENTS.map((a,i) => `
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <span><span class="mono" style="color:var(--brass); font-size:.72rem;">${a.category.toUpperCase()}</span> — ${a.title}</span>
+        <button class="btn btn-sm btn-outline-danger" onclick="deleteAnnouncement(${i})"><i class="bi bi-trash"></i></button>
+      </li>`).join('');
+  }
+
+  function toggleStudentStatus(email){
+    const s = MOCK_STUDENTS.find(x => x.email === email);
+    s.status = s.status === "active" ? "suspended" : "active";
+    // ===== SWAP POINT ===== POST /api/admin/students/{id}/status/
+    renderStudents(document.getElementById('studentSearch').value);
+  }
+
+  function toggleLibrarianStatus(email){
+    const l = MOCK_LIBRARIANS.find(x => x.email === email);
+    l.status = l.status === "active" ? "suspended" : "active";
+    // ===== SWAP POINT ===== POST /api/admin/librarians/{id}/status/
+    renderLibrarians(document.getElementById('librarianSearch').value);
+  }
+
+  function deleteBook(title){
+    MOCK_BOOKS_ADMIN = MOCK_BOOKS_ADMIN.filter(b => b.title !== title);
+    // ===== SWAP POINT ===== DELETE /api/admin/books/{id}/
+    renderBooksAdmin(document.getElementById('bookSearch').value);
+    updateStats();
+  }
+
+  function deleteAnnouncement(index){
+    MOCK_ANNOUNCEMENTS.splice(index, 1);
+    // ===== SWAP POINT ===== DELETE /api/announcements/{id}/
+    renderAnnouncements();
+  }
+
+  document.getElementById('studentSearch').addEventListener('input', e => renderStudents(e.target.value));
+  document.getElementById('librarianSearch').addEventListener('input', e => renderLibrarians(e.target.value));
+  document.getElementById('bookSearch').addEventListener('input', e => renderBooksAdmin(e.target.value));
+
+  document.getElementById('addStudentForm').addEventListener('submit', e => {
+    e.preventDefault();
+    MOCK_STUDENTS.push({
+      name: document.getElementById('newStudentName').value,
+      email: document.getElementById('newStudentEmail').value,
+      borrowed: 0, fines: 0, status: "active"
+    });
+    // ===== SWAP POINT ===== POST /api/admin/students/
+    e.target.reset();
+    bootstrap.Modal.getInstance(document.getElementById('addStudentModal')).hide();
+    renderStudents(); updateStats();
+  });
+
+  document.getElementById('addLibrarianForm').addEventListener('submit', e => {
+    e.preventDefault();
+    MOCK_LIBRARIANS.push({
+      name: document.getElementById('newLibrarianName').value,
+      email: document.getElementById('newLibrarianEmail').value,
+      dept: document.getElementById('newLibrarianDept').value,
+      status: "active"
+    });
+    // ===== SWAP POINT ===== POST /api/admin/librarians/
+    e.target.reset();
+    bootstrap.Modal.getInstance(document.getElementById('addLibrarianModal')).hide();
+    renderLibrarians(); updateStats();
+  });
+
+  document.getElementById('addBookForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const copies = parseInt(document.getElementById('newBookCopies').value, 10);
+    MOCK_BOOKS_ADMIN.push({
+      title: document.getElementById('newBookTitle').value,
+      author: document.getElementById('newBookAuthor').value,
+      copies: copies, available: copies,
+      status: copies <= 1 ? "lowstock" : "active"
+    });
+    // ===== SWAP POINT ===== POST /api/admin/books/
+    e.target.reset();
+    bootstrap.Modal.getInstance(document.getElementById('addBookModal')).hide();
+    renderBooksAdmin(); updateStats();
+  });
+
+  document.getElementById('announcementForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const title = document.getElementById('annTitle').value.trim();
+    const category = document.getElementById('annCategory').value;
+    if(!title) return;
+    MOCK_ANNOUNCEMENTS.unshift({ category, title });
+    // ===== SWAP POINT ===== POST /api/announcements/
+    document.getElementById('annTitle').value = '';
+    renderAnnouncements();
+  });
+
+  renderStudents(); renderLibrarians(); renderBooksAdmin(); renderAnnouncements(); updateStats();
+
+  new Chart(document.getElementById('adminActivityChart'), {
+    type: 'line',
+    data: {
+      labels: ['Mar','Apr','May','Jun','Jul','Aug'],
+      datasets: [{
+        label: 'Loans issued', data: [420, 512, 480, 610, 590, 702],
+        borderColor: '#B08D57', backgroundColor: 'rgba(176,141,87,0.12)',
+        tension: 0.35, fill: true, pointBackgroundColor: '#1C2541'
+      }]
+    },
+    options: {
+      plugins: { legend: { display:false } },
+      scales: {
+        y: { grid:{ color:'rgba(28,37,65,.08)' }, ticks:{ font:{ family:"'IBM Plex Mono'", size:11 } } },
+        x: { grid:{ display:false }, ticks:{ font:{ family:"'IBM Plex Mono'", size:11 } } }
+      }
+    }
+  });
+</script>
+</body>
+</html>
